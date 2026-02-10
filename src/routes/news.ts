@@ -104,7 +104,7 @@ newsRouter.get("/search", async (req, res) => {
           take: 50,
         }).then((all) =>
           all.filter((a) => {
-            const blocks = (a.content as ContentBlock[]) || [];
+            const blocks = (a.content as unknown as ContentBlock[]) || [];
             return blocks.some((b) => b.text?.toLowerCase().includes(q.toLowerCase()));
           }).slice(0, 20)
         )
