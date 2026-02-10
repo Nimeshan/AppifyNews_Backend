@@ -22,20 +22,11 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
     // Skip empty lines
     if (!trimmed) continue;
 
-<<<<<<< HEAD
-    // Heading: <h2>...</h2> → heading, <h3>...</h3> → subheading
-    if (trimmed.match(/^<h2[^>]*>/i)) {
-      const text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
-=======
     // Heading: <h2>...</h2> (main heading)
     if (trimmed.match(/^<h2[^>]*>/i)) {
-      // Extract text and remove any inline styles/attributes
       let text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
-      // Remove any remaining HTML tags that might have slipped through
       text = text.replace(/<[^>]+>/g, "").trim();
->>>>>>> 1225b5121e423d1e7842e18a904f84674326abe2
       if (text) {
-        // Avoid double headings - skip if previous block was also a heading
         if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
           blocks.push({ type: "heading", text });
           lastBlockType = "heading";
@@ -44,26 +35,10 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
       continue;
     }
 
-<<<<<<< HEAD
-    if (trimmed.match(/^<h3[^>]*>/i)) {
-      const text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
-      if (text) {
-        blocks.push({ type: "subheading", text });
-      }
-      continue;
-    }
-
-    // Markdown: ## → heading, ### → subheading
-    if (trimmed.match(/^##\s+/)) {
-      const text = trimmed.replace(/^##\s+/, "").trim();
-=======
     // Subheading: <h3>...</h3> (subheading - smaller)
     if (trimmed.match(/^<h3[^>]*>/i)) {
-      // Extract text and remove any inline styles/attributes
       let text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
-      // Remove any remaining HTML tags that might have slipped through
       text = text.replace(/<[^>]+>/g, "").trim();
->>>>>>> 1225b5121e423d1e7842e18a904f84674326abe2
       if (text) {
         blocks.push({ type: "subheading", text });
         lastBlockType = "subheading";
@@ -71,32 +46,23 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
       continue;
     }
 
-    // Markdown headings: ## (heading) or ### (subheading)
+    // Markdown: ## → heading, ### → subheading (check ### first)
+    if (trimmed.match(/^###\s+/)) {
+      const text = trimmed.replace(/^###\s+/, "").trim();
+      if (text) {
+        blocks.push({ type: "subheading", text });
+        lastBlockType = "subheading";
+      }
+      continue;
+    }
+
     if (trimmed.match(/^##\s+/)) {
       const text = trimmed.replace(/^##\s+/, "").trim();
       if (text) {
-        // Avoid double headings
         if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
           blocks.push({ type: "heading", text });
           lastBlockType = "heading";
         }
-      }
-      continue;
-    }
-
-    if (trimmed.match(/^###\s+/)) {
-      const text = trimmed.replace(/^###\s+/, "").trim();
-      if (text) {
-        blocks.push({ type: "subheading", text });
-        lastBlockType = "subheading";
-      }
-      continue;
-    }
-
-    if (trimmed.match(/^###\s+/)) {
-      const text = trimmed.replace(/^###\s+/, "").trim();
-      if (text) {
-        blocks.push({ type: "subheading", text });
       }
       continue;
     }

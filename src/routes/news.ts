@@ -1,6 +1,13 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 
+interface ContentBlock {
+  type: string;
+  text?: string;
+  src?: string;
+  alt?: string;
+}
+
 export const newsRouter = Router();
 
 // GET /api/news — List all published articles
@@ -83,25 +90,30 @@ newsRouter.get("/search", async (req, res) => {
           { title: { contains: q, mode: "insensitive" } },
           { excerpt: { contains: q, mode: "insensitive" } },
           { topics: { contains: q, mode: "insensitive" } },
-          {
-            contentBlocks: {
-              some: {
-                text: { contains: q, mode: "insensitive" },
-              },
-            },
-          },
         ],
-      },
-      include: {
-        contentBlocks: {
-          orderBy: { sortOrder: "asc" },
-        },
       },
       orderBy: { date: "desc" },
       take: 20,
     });
 
-    const mapped = articles.map((article) => ({
+    // Also filter by content text (JSON column - search client-side)
+    const contentMatched = articles.length === 0
+      ? await prisma.article.findMany({
+          where: { status: "published" },
+          orderBy: { date: "desc" },
+          take: 50,
+        }).then((all) =>
+          all.filter((a) => {
+            const blocks = (a.content as ContentBlock[]) || [];
+            return blocks.some((b) => b.text?.toLowerCase().includes(q.toLowerCase()));
+          }).slice(0, 20)
+        )
+      : [];
+
+    const allResults = [...articles, ...contentMatched];
+    const unique = allResults.filter((a, i, arr) => arr.findIndex((b) => b.id === a.id) === i);
+
+    const mapped = unique.map((article) => ({
       id: article.id,
       slug: article.slug,
       title: article.title,
@@ -116,12 +128,7 @@ newsRouter.get("/search", async (req, res) => {
       }),
       timestamp: getRelativeTime(article.createdAt),
       isFeatured: article.isFeatured,
-      content: article.contentBlocks.map((block: ArticleContentBlock) => ({
-        type: block.type,
-        text: block.text,
-        src: block.src,
-        alt: block.alt,
-      })),
+      content: (article.content as any) || [],
     }));
 
     res.json(mapped);

@@ -41,15 +41,4 @@ enum ArticleStatus {
   @@map("article_status")
 }
 
-<<<<<<< HEAD
-enum BlockType {
-  paragraph
-  heading
-  subheading
-  image
-
-  @@map("block_type")
-}
-=======
 // BlockType enum removed - using JSON structure instead
->>>>>>> 1225b5121e423d1e7842e18a904f84674326abe2
