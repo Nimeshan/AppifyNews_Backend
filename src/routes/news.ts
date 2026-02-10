@@ -1,20 +1,25 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import { prisma } from "../lib/prisma";
+import { ArticleContentBlock } from "@prisma/client";
 
 export const newsRouter = Router();
 
 // GET /api/news — List all published articles
-newsRouter.get("/", async (req: Request, res: Response) => {
+newsRouter.get("/", async (req, res) => {
   try {
-    const { category, status, featured, limit, offset } = req.query;
+    const category = req.query.category as string | undefined;
+    const status = req.query.status as string | undefined;
+    const featured = req.query.featured as string | undefined;
+    const limit = req.query.limit as string | undefined;
+    const offset = req.query.offset as string | undefined;
 
     const where: any = {};
 
     // Default to published articles for public requests
-    where.status = (status as string) || "published";
+    where.status = status || "published";
 
     if (category) {
-      where.category = { equals: category as string, mode: "insensitive" };
+      where.category = { equals: category, mode: "insensitive" };
     }
 
     if (featured === "true") {
@@ -29,8 +34,8 @@ newsRouter.get("/", async (req: Request, res: Response) => {
         },
       },
       orderBy: { date: "desc" },
-      take: limit ? parseInt(limit as string) : 50,
-      skip: offset ? parseInt(offset as string) : 0,
+      take: limit ? parseInt(limit) : 50,
+      skip: offset ? parseInt(offset) : 0,
     });
 
     // Map to frontend-friendly format
@@ -52,7 +57,7 @@ newsRouter.get("/", async (req: Request, res: Response) => {
       metaTitle: article.metaTitle,
       metaDescription: article.metaDescription,
       status: article.status,
-      content: article.contentBlocks.map((block) => ({
+      content: article.contentBlocks.map((block: ArticleContentBlock) => ({
         type: block.type,
         text: block.text,
         src: block.src,
@@ -68,10 +73,12 @@ newsRouter.get("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/news/:slug — Get single article by slug
-newsRouter.get("/:slug", async (req: Request, res: Response) => {
+newsRouter.get("/:slug", async (req, res) => {
   try {
+    const slug = req.params.slug as string;
+
     const article = await prisma.article.findUnique({
-      where: { slug: req.params.slug },
+      where: { slug },
       include: {
         contentBlocks: {
           orderBy: { sortOrder: "asc" },
@@ -80,7 +87,8 @@ newsRouter.get("/:slug", async (req: Request, res: Response) => {
     });
 
     if (!article) {
-      return res.status(404).json({ error: "Article not found" });
+      res.status(404).json({ error: "Article not found" });
+      return;
     }
 
     res.json({
@@ -101,7 +109,7 @@ newsRouter.get("/:slug", async (req: Request, res: Response) => {
       metaTitle: article.metaTitle,
       metaDescription: article.metaDescription,
       status: article.status,
-      content: article.contentBlocks.map((block) => ({
+      content: article.contentBlocks.map((block: ArticleContentBlock) => ({
         type: block.type,
         text: block.text,
         src: block.src,
@@ -115,7 +123,7 @@ newsRouter.get("/:slug", async (req: Request, res: Response) => {
 });
 
 // POST /api/news — Create a new article (protected by API key)
-newsRouter.post("/", async (req: Request, res: Response) => {
+newsRouter.post("/", async (req, res) => {
   try {
     const {
       slug,
@@ -135,9 +143,10 @@ newsRouter.post("/", async (req: Request, res: Response) => {
 
     // Validate required fields
     if (!slug || !title || !excerpt || !category || !imageUrl) {
-      return res.status(400).json({
+      res.status(400).json({
         error: "Missing required fields: slug, title, excerpt, category, imageUrl",
       });
+      return;
     }
 
     // Check for duplicate source URL
@@ -146,10 +155,11 @@ newsRouter.post("/", async (req: Request, res: Response) => {
         where: { sourceUrl },
       });
       if (existing) {
-        return res.status(409).json({
+        res.status(409).json({
           error: "Article from this source already exists",
           existingSlug: existing.slug,
         });
+        return;
       }
     }
 
@@ -199,10 +209,12 @@ newsRouter.post("/", async (req: Request, res: Response) => {
 });
 
 // PUT /api/news/:slug/publish — Publish a draft article
-newsRouter.put("/:slug/publish", async (req: Request, res: Response) => {
+newsRouter.put("/:slug/publish", async (req, res) => {
   try {
+    const slug = req.params.slug as string;
+
     const article = await prisma.article.update({
-      where: { slug: req.params.slug },
+      where: { slug },
       data: { status: "published" },
     });
 
@@ -214,10 +226,12 @@ newsRouter.put("/:slug/publish", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/news/:slug — Delete an article
-newsRouter.delete("/:slug", async (req: Request, res: Response) => {
+newsRouter.delete("/:slug", async (req, res) => {
   try {
+    const slug = req.params.slug as string;
+
     await prisma.article.delete({
-      where: { slug: req.params.slug },
+      where: { slug },
     });
 
     res.json({ message: "Article deleted" });
