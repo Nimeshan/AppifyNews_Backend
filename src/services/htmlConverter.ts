@@ -26,9 +26,11 @@ export async function convertToHTML(seoContent: string): Promise<string> {
         content: `Generate clean HTML output using only the following tags: <h2>, <h3>, <p>, <ul>, <li>, <a>.
 
 DO NOT use any other HTML tags (e.g. <h1>, <style>, <div>, <span>) or any inline styles. DO NOT include Markdown, explanations, or any text outside the HTML.
+DO NOT add font-size, style attributes, or any sizing to headings - the frontend will handle all styling.
 
 Format content in paragraph-by-paragraph structure. Use <p> for all paragraphs.
-Use <h2> for major sections and <h3> for subheadings or numbered breakdowns.
+Use <h2> for major section headings (main topics).
+Use <h3> for subheadings (subtopics within a section).
 
 To ensure correct visual spacing in Webflow:
 - Insert a \`<p class="spacer"></p>\` **before and after every \`<h2>\` and \`<h3>\` heading**
