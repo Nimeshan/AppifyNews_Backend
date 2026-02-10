@@ -1,6 +1,7 @@
 import { fetchNewRSSItems } from "../services/rss";
 import { generateBlogContent } from "../services/contentGenerator";
 import { optimizeForSEO } from "../services/seoOptimizer";
+import { generateImage } from "../services/imageGenerator";
 import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/contentParser";
 import { prisma } from "../lib/prisma";
 
@@ -38,7 +39,18 @@ export async function generateArticles(): Promise<void> {
       const slug = generateSlug(item.title);
       const excerpt = generateExcerpt(contentBlocks);
 
-      // Step 5: Save to database
+      // Step 5: Get image — use RSS image or generate with Grok
+      let imageUrl = item.enclosure?.url || "";
+      if (!imageUrl) {
+        try {
+          imageUrl = await generateImage(item.title, seoResult.topics);
+        } catch (imgError) {
+          console.error("[Pipeline] Image generation failed, using placeholder:", imgError);
+          imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
+        }
+      }
+
+      // Step 6: Save to database
       const article = await prisma.article.create({
         data: {
           slug,
@@ -46,7 +58,7 @@ export async function generateArticles(): Promise<void> {
           excerpt: excerpt || item.contentSnippet || "",
           topics: seoResult.topics,
           author: "Appify",
-          imageUrl: item.enclosure?.url || "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
+          imageUrl,
           date: item.pubDate ? new Date(item.pubDate) : new Date(),
           isFeatured: false,
           metaTitle: seoResult.metaTitle,
