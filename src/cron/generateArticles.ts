@@ -49,17 +49,22 @@ export async function generateArticles(): Promise<void> {
       // Step 7: Parse HTML into content blocks
       const contentBlocks = parseContentBlocks(htmlContent);
       const slug = generateSlug(blogTitle); // Use generated title for slug
-      const excerpt = generateExcerpt(contentBlocks) || metaDescription.slice(0, 200);
+      const excerpt = generateExcerpt(contentBlocks, metaDescription) || metaDescription.slice(0, 250);
 
-      // Step 8: Generate image with Grok (or use RSS image)
-      let imageUrl = item.enclosure?.url || "";
+      // Step 8: Get image - use RSS image first, then generate with Grok-2-Image
+      let imageUrl = item.imageUrl || item.enclosure?.url || "";
+      
       if (!imageUrl) {
+        console.log("[Pipeline] No RSS image found, generating with Grok-2-Image...");
         try {
           imageUrl = await generateImage(blogTitle, seoResult.topics);
+          console.log("[Pipeline] Image generated successfully with Grok-2-Image");
         } catch (imgError) {
           console.error("[Pipeline] Image generation failed, using placeholder:", imgError);
           imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
         }
+      } else {
+        console.log("[Pipeline] Using image from RSS feed");
       }
 
       // Step 9: Save to database

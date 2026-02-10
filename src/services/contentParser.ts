@@ -82,14 +82,68 @@ export function generateSlug(title: string): string {
 }
 
 /**
- * Extract the first ~200 characters as an excerpt.
+ * Generate a 2-3 line excerpt from content blocks.
+ * Removes hashtags and creates a clean description.
  */
-export function generateExcerpt(blocks: ContentBlock[]): string {
-  const firstParagraph = blocks.find((b) => b.type === "paragraph");
-  if (!firstParagraph?.text) return "";
+export function generateExcerpt(blocks: ContentBlock[], metaDescription?: string): string {
+  // If we have a meta description, use it as base (it's usually well-formatted)
+  if (metaDescription) {
+    // Remove hashtags and clean up
+    let clean = metaDescription
+      .replace(/#\w+/g, "") // Remove hashtags
+      .replace(/\s+/g, " ") // Normalize whitespace
+      .trim();
+    
+    // Ensure it's 2-3 lines (roughly 150-300 characters)
+    if (clean.length > 300) {
+      // Find a good breaking point (sentence end)
+      const truncated = clean.slice(0, 300);
+      const lastPeriod = truncated.lastIndexOf(".");
+      const lastComma = truncated.lastIndexOf(",");
+      const breakPoint = Math.max(lastPeriod, lastComma);
+      
+      if (breakPoint > 150) {
+        clean = clean.slice(0, breakPoint + 1);
+      } else {
+        clean = clean.slice(0, 297) + "...";
+      }
+    }
+    
+    return clean;
+  }
 
-  const plainText = firstParagraph.text.replace(/<[^>]+>/g, "");
-  return plainText.length > 200
-    ? plainText.slice(0, 197) + "..."
-    : plainText;
+  // Fallback: Extract from first 2-3 paragraphs
+  const paragraphs = blocks.filter((b) => b.type === "paragraph").slice(0, 3);
+  if (paragraphs.length === 0) return "";
+
+  let excerpt = paragraphs
+    .map((p) => {
+      let text = p.text || "";
+      // Remove HTML tags
+      text = text.replace(/<[^>]+>/g, "");
+      // Remove hashtags
+      text = text.replace(/#\w+/g, "");
+      // Clean up whitespace
+      text = text.replace(/\s+/g, " ").trim();
+      return text;
+    })
+    .filter((t) => t.length > 0)
+    .join(" ");
+
+  // Limit to ~250 characters for 2-3 lines
+  if (excerpt.length > 250) {
+    const truncated = excerpt.slice(0, 250);
+    const lastPeriod = truncated.lastIndexOf(".");
+    const lastSpace = truncated.lastIndexOf(" ");
+    
+    if (lastPeriod > 150) {
+      excerpt = excerpt.slice(0, lastPeriod + 1);
+    } else if (lastSpace > 150) {
+      excerpt = excerpt.slice(0, lastSpace) + "...";
+    } else {
+      excerpt = truncated + "...";
+    }
+  }
+
+  return excerpt;
 }

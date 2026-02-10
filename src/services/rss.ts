@@ -11,6 +11,7 @@ export interface RSSItem {
   pubDate?: string;
   categories?: string[];
   enclosure?: { url?: string };
+  imageUrl?: string; // Extracted image from content or enclosure
 }
 
 /**
@@ -39,6 +40,28 @@ export async function fetchNewRSSItems(): Promise<RSSItem[]> {
     });
 
     if (!exists) {
+      // Extract image from RSS item
+      let imageUrl: string | undefined;
+      
+      // Check enclosure first (RSS standard for images)
+      if (item.enclosure?.url) {
+        imageUrl = item.enclosure.url;
+      }
+      // Check content for img tags
+      else if (item.content) {
+        const imgMatch = item.content.match(/<img[^>]+src="([^"]+)"[^>]*>/i);
+        if (imgMatch && imgMatch[1]) {
+          imageUrl = imgMatch[1];
+        }
+      }
+      // Check itunes:image or media:content (common RSS extensions)
+      else if ((item as any)["itunes:image"]?.href) {
+        imageUrl = (item as any)["itunes:image"].href;
+      }
+      else if ((item as any)["media:content"]?.url) {
+        imageUrl = (item as any)["media:content"].url;
+      }
+
       newItems.push({
         title: item.title || "Untitled",
         link: item.link,
@@ -47,6 +70,7 @@ export async function fetchNewRSSItems(): Promise<RSSItem[]> {
         pubDate: item.pubDate,
         categories: item.categories,
         enclosure: item.enclosure,
+        imageUrl,
       });
     }
   }
