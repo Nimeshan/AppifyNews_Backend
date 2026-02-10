@@ -1,7 +1,7 @@
 import slugify from "slugify";
 
 interface ContentBlock {
-  type: "paragraph" | "heading" | "image";
+  type: "paragraph" | "heading" | "subheading" | "image";
   text?: string;
   src?: string;
   alt?: string;
@@ -14,6 +14,7 @@ interface ContentBlock {
 export function parseContentBlocks(htmlContent: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];
   const lines = htmlContent.split("\n").filter((line) => line.trim());
+  let lastBlockType: string | null = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -21,19 +22,47 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
     // Skip empty lines
     if (!trimmed) continue;
 
-    // Heading: <h2>...</h2> or <h3>...</h3> or ## ... or ### ...
-    if (trimmed.match(/^<h[23][^>]*>/i)) {
-      const text = trimmed.replace(/<\/?h[23][^>]*>/gi, "").trim();
+    // Heading: <h2>...</h2> (main heading)
+    if (trimmed.match(/^<h2[^>]*>/i)) {
+      const text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
       if (text) {
-        blocks.push({ type: "heading", text });
+        // Avoid double headings - skip if previous block was also a heading
+        if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
+          blocks.push({ type: "heading", text });
+          lastBlockType = "heading";
+        }
       }
       continue;
     }
 
-    if (trimmed.match(/^#{2,3}\s+/)) {
-      const text = trimmed.replace(/^#{2,3}\s+/, "").trim();
+    // Subheading: <h3>...</h3> (subheading - smaller)
+    if (trimmed.match(/^<h3[^>]*>/i)) {
+      const text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
       if (text) {
-        blocks.push({ type: "heading", text });
+        blocks.push({ type: "subheading", text });
+        lastBlockType = "subheading";
+      }
+      continue;
+    }
+
+    // Markdown headings: ## (heading) or ### (subheading)
+    if (trimmed.match(/^##\s+/)) {
+      const text = trimmed.replace(/^##\s+/, "").trim();
+      if (text) {
+        // Avoid double headings
+        if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
+          blocks.push({ type: "heading", text });
+          lastBlockType = "heading";
+        }
+      }
+      continue;
+    }
+
+    if (trimmed.match(/^###\s+/)) {
+      const text = trimmed.replace(/^###\s+/, "").trim();
+      if (text) {
+        blocks.push({ type: "subheading", text });
+        lastBlockType = "subheading";
       }
       continue;
     }
@@ -90,6 +119,7 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
     // Keep <a> tags as-is (they contain internal/external links from SEO step)
     if (text) {
       blocks.push({ type: "paragraph", text });
+      lastBlockType = "paragraph";
     }
   }
 
