@@ -62,13 +62,8 @@ adminRouter.post("/regenerate-content", async (_req, res) => {
     console.log("[ADMIN] Content regeneration triggered");
     
     // Regenerate published articles OR articles with NULL content
-    // First get all articles, then filter for NULL content in JavaScript
+    // Fetch all articles and filter in JavaScript (Prisma JSON null filtering is tricky)
     const allArticles = await prisma.article.findMany({
-      where: {
-        OR: [
-          { status: "published" },
-        ],
-      },
       select: {
         id: true,
         slug: true,
@@ -83,31 +78,13 @@ adminRouter.post("/regenerate-content", async (_req, res) => {
       },
     });
     
-    // Also get articles with NULL content (regardless of status)
-    const nullContentArticles = await prisma.article.findMany({
-      where: {
-        content: { equals: Prisma.JsonNull },
-      },
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        sourceUrl: true,
-        status: true,
-        topics: true,
-        imageUrl: true,
-        excerpt: true,
-        metaDescription: true,
-        content: true,
-      },
-    });
-    
-    // Combine and deduplicate by id
-    const articleMap = new Map();
-    [...allArticles, ...nullContentArticles].forEach(article => {
-      articleMap.set(article.id, article);
-    });
-    const articles = Array.from(articleMap.values()).map(({ content, ...rest }) => rest);
+    // Filter: published articles OR articles with NULL content
+    const articles = allArticles
+      .filter(article => 
+        article.status === "published" || 
+        article.content === null
+      )
+      .map(({ content, ...rest }) => rest); // Remove content from select
     
     if (articles.length === 0) {
       return res.json({ 
