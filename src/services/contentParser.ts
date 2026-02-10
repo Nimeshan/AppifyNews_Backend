@@ -24,7 +24,10 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
 
     // Heading: <h2>...</h2> (main heading)
     if (trimmed.match(/^<h2[^>]*>/i)) {
-      const text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
+      // Extract text and remove any inline styles/attributes
+      let text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
+      // Remove any remaining HTML tags that might have slipped through
+      text = text.replace(/<[^>]+>/g, "").trim();
       if (text) {
         // Avoid double headings - skip if previous block was also a heading
         if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
@@ -37,7 +40,10 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
 
     // Subheading: <h3>...</h3> (subheading - smaller)
     if (trimmed.match(/^<h3[^>]*>/i)) {
-      const text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
+      // Extract text and remove any inline styles/attributes
+      let text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
+      // Remove any remaining HTML tags that might have slipped through
+      text = text.replace(/<[^>]+>/g, "").trim();
       if (text) {
         blocks.push({ type: "subheading", text });
         lastBlockType = "subheading";

@@ -77,6 +77,14 @@ Only output valid HTML — no labels, commentary, or non-HTML content.`,
   // Remove any script/style tags that might have slipped through
   htmlContent = htmlContent.replace(/<script[\s\S]*?<\/script>/gi, "");
   htmlContent = htmlContent.replace(/<style[\s\S]*?<\/style>/gi, "");
+  
+  // Remove inline styles from all tags (especially headings)
+  htmlContent = htmlContent.replace(/\s+style="[^"]*"/gi, "");
+  htmlContent = htmlContent.replace(/\s+style='[^']*'/gi, "");
+  
+  // Remove font-size, size, and other sizing attributes
+  htmlContent = htmlContent.replace(/\s+font-size="[^"]*"/gi, "");
+  htmlContent = htmlContent.replace(/\s+size="[^"]*"/gi, "");
 
   console.log("[OpenAI] HTML conversion complete.");
   return htmlContent.trim();
