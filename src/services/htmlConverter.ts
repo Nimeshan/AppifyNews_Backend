@@ -26,9 +26,11 @@ export async function convertToHTML(seoContent: string): Promise<string> {
         content: `Generate clean HTML output using only the following tags: <h2>, <h3>, <p>, <ul>, <li>, <a>.
 
 DO NOT use any other HTML tags (e.g. <h1>, <style>, <div>, <span>) or any inline styles. DO NOT include Markdown, explanations, or any text outside the HTML.
+DO NOT add font-size, style attributes, or any sizing to headings - the frontend will handle all styling.
 
 Format content in paragraph-by-paragraph structure. Use <p> for all paragraphs.
-Use <h2> for major sections and <h3> for subheadings or numbered breakdowns.
+Use <h2> for major section headings (main topics).
+Use <h3> for subheadings (subtopics within a section).
 
 To ensure correct visual spacing in Webflow:
 - Insert a \`<p class="spacer"></p>\` **before and after every \`<h2>\` and \`<h3>\` heading**
@@ -46,10 +48,43 @@ Only output valid HTML — no labels, commentary, or non-HTML content.`,
     ],
   });
 
-  const htmlContent = response.choices[0]?.message?.content;
+  let htmlContent = response.choices[0]?.message?.content;
   if (!htmlContent) {
     throw new Error("OpenAI returned empty HTML content");
   }
+
+  // Clean up any stray content from OpenAI
+  // Remove markdown code blocks (```html, ```)
+  htmlContent = htmlContent.replace(/```html\s*/gi, "");
+  htmlContent = htmlContent.replace(/```\s*/g, "");
+  
+  // Remove any explanations before/after HTML (common OpenAI behavior)
+  // Find the first < and last > to extract only HTML content
+  const firstTag = htmlContent.indexOf("<");
+  const lastTag = htmlContent.lastIndexOf(">");
+  
+  if (firstTag !== -1 && lastTag !== -1 && lastTag > firstTag) {
+    htmlContent = htmlContent.substring(firstTag, lastTag + 1);
+  }
+  
+  // Remove any remaining non-HTML text at start/end
+  htmlContent = htmlContent.replace(/^[^<]*/, ""); // Remove text before first <
+  htmlContent = htmlContent.replace(/[^>]*$/, ""); // Remove text after last >
+  
+  // Remove any stray HTML comments
+  htmlContent = htmlContent.replace(/<!--[\s\S]*?-->/g, "");
+  
+  // Remove any script/style tags that might have slipped through
+  htmlContent = htmlContent.replace(/<script[\s\S]*?<\/script>/gi, "");
+  htmlContent = htmlContent.replace(/<style[\s\S]*?<\/style>/gi, "");
+  
+  // Remove inline styles from all tags (especially headings)
+  htmlContent = htmlContent.replace(/\s+style="[^"]*"/gi, "");
+  htmlContent = htmlContent.replace(/\s+style='[^']*'/gi, "");
+  
+  // Remove font-size, size, and other sizing attributes
+  htmlContent = htmlContent.replace(/\s+font-size="[^"]*"/gi, "");
+  htmlContent = htmlContent.replace(/\s+size="[^"]*"/gi, "");
 
   console.log("[OpenAI] HTML conversion complete.");
   return htmlContent.trim();

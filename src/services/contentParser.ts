@@ -14,6 +14,7 @@ interface ContentBlock {
 export function parseContentBlocks(htmlContent: string): ContentBlock[] {
   const blocks: ContentBlock[] = [];
   const lines = htmlContent.split("\n").filter((line) => line.trim());
+  let lastBlockType: string | null = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -21,15 +22,29 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
     // Skip empty lines
     if (!trimmed) continue;
 
+<<<<<<< HEAD
     // Heading: <h2>...</h2> → heading, <h3>...</h3> → subheading
     if (trimmed.match(/^<h2[^>]*>/i)) {
       const text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
+=======
+    // Heading: <h2>...</h2> (main heading)
+    if (trimmed.match(/^<h2[^>]*>/i)) {
+      // Extract text and remove any inline styles/attributes
+      let text = trimmed.replace(/<\/?h2[^>]*>/gi, "").trim();
+      // Remove any remaining HTML tags that might have slipped through
+      text = text.replace(/<[^>]+>/g, "").trim();
+>>>>>>> 1225b5121e423d1e7842e18a904f84674326abe2
       if (text) {
-        blocks.push({ type: "heading", text });
+        // Avoid double headings - skip if previous block was also a heading
+        if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
+          blocks.push({ type: "heading", text });
+          lastBlockType = "heading";
+        }
       }
       continue;
     }
 
+<<<<<<< HEAD
     if (trimmed.match(/^<h3[^>]*>/i)) {
       const text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
       if (text) {
@@ -41,8 +56,39 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
     // Markdown: ## → heading, ### → subheading
     if (trimmed.match(/^##\s+/)) {
       const text = trimmed.replace(/^##\s+/, "").trim();
+=======
+    // Subheading: <h3>...</h3> (subheading - smaller)
+    if (trimmed.match(/^<h3[^>]*>/i)) {
+      // Extract text and remove any inline styles/attributes
+      let text = trimmed.replace(/<\/?h3[^>]*>/gi, "").trim();
+      // Remove any remaining HTML tags that might have slipped through
+      text = text.replace(/<[^>]+>/g, "").trim();
+>>>>>>> 1225b5121e423d1e7842e18a904f84674326abe2
       if (text) {
-        blocks.push({ type: "heading", text });
+        blocks.push({ type: "subheading", text });
+        lastBlockType = "subheading";
+      }
+      continue;
+    }
+
+    // Markdown headings: ## (heading) or ### (subheading)
+    if (trimmed.match(/^##\s+/)) {
+      const text = trimmed.replace(/^##\s+/, "").trim();
+      if (text) {
+        // Avoid double headings
+        if (lastBlockType !== "heading" && lastBlockType !== "subheading") {
+          blocks.push({ type: "heading", text });
+          lastBlockType = "heading";
+        }
+      }
+      continue;
+    }
+
+    if (trimmed.match(/^###\s+/)) {
+      const text = trimmed.replace(/^###\s+/, "").trim();
+      if (text) {
+        blocks.push({ type: "subheading", text });
+        lastBlockType = "subheading";
       }
       continue;
     }
@@ -76,11 +122,38 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
       .replace(/<\/?ul>/gi, "")
       .replace(/<\/?li>/gi, "")
       .replace(/<\/?ol>/gi, "")
+      .replace(/<\/?div[^>]*>/gi, "")
+      .replace(/<\/?span[^>]*>/gi, "")
+      .replace(/<\/?br\s*\/?>/gi, " ")
+      .replace(/&nbsp;/gi, " ")
       .trim();
+
+    // Remove any remaining stray HTML tags (except <a> which we keep for links)
+    // First extract <a> tags, then remove all other HTML, then restore <a> tags
+    const linkMatches: Array<{ placeholder: string; original: string }> = [];
+    let linkIndex = 0;
+    text = text.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, (match) => {
+      const placeholder = `__LINK_${linkIndex}__`;
+      linkMatches.push({ placeholder, original: match });
+      linkIndex++;
+      return placeholder;
+    });
+    
+    // Remove all remaining HTML tags
+    text = text.replace(/<[^>]+>/g, "");
+    
+    // Restore <a> tags
+    linkMatches.forEach(({ placeholder, original }) => {
+      text = text.replace(placeholder, original);
+    });
+
+    // Clean up extra whitespace
+    text = text.replace(/\s+/g, " ").trim();
 
     // Keep <a> tags as-is (they contain internal/external links from SEO step)
     if (text) {
       blocks.push({ type: "paragraph", text });
+      lastBlockType = "paragraph";
     }
   }
 
