@@ -106,12 +106,12 @@ export async function generateArticles(): Promise<void> {
           metaTitle: (seoResult.metaTitle || blogTitle.slice(0, 60)).slice(0, 60), // Max 60 chars
           metaDescription: metaDescription.slice(0, 160), // Max 160 chars
           sourceUrl: item.link,
-          status: "pending_review",
+          status: "published", // Auto-publish articles
           content: contentJson as any, // Store as JSON
         },
       });
 
-      console.log(`[Pipeline] Saved article: ${article.slug} (status: pending_review)`);
+      console.log(`[Pipeline] Saved article: ${article.slug} (status: published)`);
     } catch (error) {
       console.error(`[Pipeline] Failed to process "${item.title}":`, error);
       // Continue with next item
