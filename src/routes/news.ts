@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
+import https from "https";
+import http from "http";
 
 interface ContentBlock {
   type: string;
@@ -40,6 +42,7 @@ newsRouter.get("/", async (req, res) => {
     });
 
     // Map to frontend-friendly format
+    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
     const mapped = articles.map((article) => ({
       id: article.id,
       slug: article.slug,
@@ -47,7 +50,7 @@ newsRouter.get("/", async (req, res) => {
       excerpt: article.excerpt,
       topics: article.topics,
       author: article.author,
-      imageUrl: article.imageUrl,
+      imageUrl: `${baseUrl}/api/news/image/${article.slug}`,
       date: article.date.toLocaleDateString("en-AU", {
         day: "2-digit",
         month: "2-digit",
@@ -113,6 +116,7 @@ newsRouter.get("/search", async (req, res) => {
     const allResults = [...articles, ...contentMatched];
     const unique = allResults.filter((a, i, arr) => arr.findIndex((b) => b.id === a.id) === i);
 
+    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
     const mapped = unique.map((article) => ({
       id: article.id,
       slug: article.slug,
@@ -120,7 +124,7 @@ newsRouter.get("/search", async (req, res) => {
       excerpt: article.excerpt,
       topics: article.topics,
       author: article.author,
-      imageUrl: article.imageUrl,
+      imageUrl: `${baseUrl}/api/news/image/${article.slug}`,
       date: article.date.toLocaleDateString("en-AU", {
         day: "2-digit",
         month: "2-digit",
@@ -152,6 +156,7 @@ newsRouter.get("/:slug", async (req, res) => {
       return;
     }
 
+    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
     res.json({
       id: article.id,
       slug: article.slug,
@@ -159,7 +164,7 @@ newsRouter.get("/:slug", async (req, res) => {
       excerpt: article.excerpt,
       topics: article.topics,
       author: article.author,
-      imageUrl: article.imageUrl,
+      imageUrl: `${baseUrl}/api/news/image/${article.slug}`,
       date: article.date.toLocaleDateString("en-AU", {
         day: "2-digit",
         month: "2-digit",
@@ -274,6 +279,52 @@ newsRouter.delete("/:slug", async (req, res) => {
   } catch (error) {
     console.error("Error deleting article:", error);
     res.status(500).json({ error: "Failed to delete article" });
+  }
+});
+
+// GET /api/news/image/:slug — Proxy image from Railbucket (like booked ai)
+newsRouter.get("/image/:slug", async (req, res) => {
+  try {
+    const slug = req.params.slug;
+
+    // Get article to find image URL
+    const article = await prisma.article.findUnique({
+      where: { slug },
+      select: { imageUrl: true },
+    });
+
+    if (!article || !article.imageUrl) {
+      res.status(404).json({ error: "Image not found" });
+      return;
+    }
+
+    // Fetch image from Railbucket (signed URL)
+    const imageUrl = article.imageUrl;
+    const url = new URL(imageUrl);
+    const client = url.protocol === "https:" ? https : http;
+
+    client
+      .get(imageUrl, (imageRes) => {
+        if (imageRes.statusCode !== 200) {
+          res.status(imageRes.statusCode || 500).json({ error: "Failed to fetch image" });
+          return;
+        }
+
+        // Set proper headers for image
+        res.setHeader("Content-Type", imageRes.headers["content-type"] || "image/png");
+        res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+        res.setHeader("Access-Control-Allow-Origin", "*");
+
+        // Stream image to response
+        imageRes.pipe(res);
+      })
+      .on("error", (error) => {
+        console.error("Error proxying image:", error);
+        res.status(500).json({ error: "Failed to proxy image" });
+      });
+  } catch (error) {
+    console.error("Error in image proxy:", error);
+    res.status(500).json({ error: "Failed to proxy image" });
   }
 });
 
