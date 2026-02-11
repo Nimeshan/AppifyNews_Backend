@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import https from "https";
 import http from "http";
 import { URL } from "url";
@@ -38,6 +39,7 @@ function getS3Client(): S3Client {
 /**
  * Upload an image to Railway Railbucket.
  * Downloads the image from a URL and uploads it to Railbucket using S3-compatible API.
+ * Returns a signed URL if the bucket is not public, otherwise returns a public URL.
  */
 export async function uploadImageToRailbucket(
   imageUrl: string,
@@ -55,23 +57,41 @@ export async function uploadImageToRailbucket(
 
   // Upload to Railbucket using S3 API
   const s3Client = getS3Client();
-  const command = new PutObjectCommand({
+  const putCommand = new PutObjectCommand({
     Bucket: bucketName,
     Key: filename,
     Body: imageBuffer,
     ContentType: "image/png", // Default to PNG
-    ACL: "public-read", // Make image publicly accessible
   });
 
   try {
-    await s3Client.send(command);
+    await s3Client.send(putCommand);
     
-    // Construct public URL (virtual-hosted-style)
+    // Try to construct public URL first
     const endpoint = process.env.RAILBUCKET_ENDPOINT || "https://t3.storageapi.dev";
     const publicUrl = `${endpoint}/${bucketName}/${filename}`;
     
-    console.log(`[Railbucket] Image uploaded successfully: ${publicUrl}`);
-    return publicUrl;
+    // Test if public URL works, if not, generate signed URL
+    try {
+      const testResponse = await fetch(publicUrl, { method: "HEAD" });
+      if (testResponse.ok) {
+        console.log(`[Railbucket] Image uploaded successfully (public): ${publicUrl}`);
+        return publicUrl;
+      }
+    } catch (testError) {
+      // Public URL doesn't work, generate signed URL
+      console.log(`[Railbucket] Public URL not accessible, generating signed URL...`);
+    }
+    
+    // Generate signed URL (valid for 1 year)
+    const getCommand = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: filename,
+    });
+    const signedUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 31536000 }); // 1 year
+    
+    console.log(`[Railbucket] Image uploaded successfully (signed URL): ${signedUrl}`);
+    return signedUrl;
   } catch (error: any) {
     console.error("[Railbucket] Upload failed:", error);
     throw new Error(`Railbucket upload failed: ${error.message}`);

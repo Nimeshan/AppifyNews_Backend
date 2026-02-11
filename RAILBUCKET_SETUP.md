@@ -48,10 +48,20 @@ Images are named using the format:
 
 ## Public URLs
 
-Images are uploaded with `public-read` ACL, so they're accessible via:
+Images should be accessible via:
 ```
 https://t3.storageapi.dev/{bucket-name}/{filename}
 ```
+
+**Important**: Railway Railbucket buckets need to be configured as **public** in the Railway dashboard for images to be accessible. 
+
+To make the bucket public:
+1. Go to Railway → Appify-Railbucket service
+2. Open the "Settings" tab
+3. Look for "Public Access" or "Bucket Policy" settings
+4. Enable public read access for the bucket
+
+If images still return 403 Forbidden, the bucket may need to be configured as public at the bucket level.
 
 ## Fallback Behavior
 
