@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { uploadImageToRailbucket } from "./railbucket";
+import slugify from "slugify";
 
 let xai: OpenAI;
 
@@ -14,7 +16,8 @@ function getXAI(): OpenAI {
 
 /**
  * Generate a blog hero image using Grok (xAI) image generation.
- * Returns the image URL.
+ * Downloads the image and uploads it to Railway Railbucket.
+ * Returns the Railbucket URL.
  */
 export async function generateImage(title: string, topic: string): Promise<string> {
   console.log(`[Grok] Generating image for: ${title}`);
@@ -32,5 +35,16 @@ export async function generateImage(title: string, topic: string): Promise<strin
   }
 
   console.log("[Grok] Image generated successfully.");
-  return imageUrl;
+
+  // Upload to Railbucket
+  try {
+    const filename = `${slugify(title, { lower: true, strict: true })}-${Date.now()}.png`;
+    const railbucketUrl = await uploadImageToRailbucket(imageUrl, filename);
+    console.log("[Grok] Image uploaded to Railbucket.");
+    return railbucketUrl;
+  } catch (error) {
+    console.error("[Grok] Failed to upload to Railbucket, using original URL:", error);
+    // Fallback to original URL if Railbucket upload fails
+    return imageUrl;
+  }
 }

@@ -5,8 +5,10 @@ import { convertToHTML } from "../services/htmlConverter";
 import { generateBlogTitle } from "../services/titleGenerator";
 import { generateMetaDescription } from "../services/metaDescriptionGenerator";
 import { generateImage } from "../services/imageGenerator";
+import { uploadImageToRailbucket } from "../services/railbucket";
 import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/contentParser";
 import { prisma } from "../lib/prisma";
+import slugify from "slugify";
 
 /**
  * Full pipeline: RSS → OpenAI (Blog) → OpenAI (SEO) → OpenAI (HTML) → OpenAI (Title) → OpenAI (Meta) → Grok (Image) → Parse → Save
@@ -57,6 +59,7 @@ export async function generateArticles(): Promise<void> {
       }
 
       // Step 8: Get image - use RSS image first, then generate with Grok-2-Image
+      // All images are uploaded to Railbucket for consistent storage
       let imageUrl = item.imageUrl || item.enclosure?.url || "";
       
       if (!imageUrl) {
@@ -69,7 +72,16 @@ export async function generateArticles(): Promise<void> {
           imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
         }
       } else {
-        console.log("[Pipeline] Using image from RSS feed");
+        console.log("[Pipeline] Using image from RSS feed, uploading to Railbucket...");
+        try {
+          // Upload RSS image to Railbucket
+          const filename = `${slugify(blogTitle, { lower: true, strict: true })}-rss-${Date.now()}.png`;
+          imageUrl = await uploadImageToRailbucket(imageUrl, filename);
+          console.log("[Pipeline] RSS image uploaded to Railbucket");
+        } catch (uploadError) {
+          console.error("[Pipeline] Failed to upload RSS image to Railbucket, using original URL:", uploadError);
+          // Keep original URL if upload fails
+        }
       }
 
       // Step 9: Save to database
