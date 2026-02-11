@@ -16,10 +16,19 @@ import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/c
 import { prisma } from "../lib/prisma";
 import slugify from "slugify";
 
-// Use code-based generation if USE_CODE_GENERATION=true, otherwise use OpenAI
+/**
+ * Generation Mode Selection:
+ * 
+ * Set USE_CODE_GENERATION=true to use code-based generation (no OpenAI required)
+ * Leave unset or set to false to use OpenAI (default, requires OPENAI_API_KEY)
+ * 
+ * OpenAI version: Higher quality, more creative, requires API key
+ * Code version: Faster, no API costs, uses RSS content extraction
+ */
 const USE_CODE_GENERATION = process.env.USE_CODE_GENERATION === "true";
 
 // Select functions based on environment variable
+// Both versions are available - just switch the flag to toggle
 const generateBlogContent = USE_CODE_GENERATION ? generateBlogContentCode : generateBlogContentOpenAI;
 const optimizeForSEO = USE_CODE_GENERATION ? optimizeForSEOCode : optimizeForSEOOpenAI;
 const convertToHTML = USE_CODE_GENERATION ? convertToHTMLCode : convertToHTMLOpenAI;
