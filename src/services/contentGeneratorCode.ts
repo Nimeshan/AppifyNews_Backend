@@ -357,17 +357,22 @@ function filterTimeBasedOpenings(paragraphs: string[]): string[] {
     /^according to/i,
   ];
   
+  // Be lenient - only filter if it's clearly a time-based opening AND the paragraph is short/incomplete
   return paragraphs.filter(p => {
     const firstSentence = p.trim().split(/[.!?]/)[0];
-    // Also check if paragraph contains quotes or news fragments
-    const hasQuotes = /"[^"]{20,}"/.test(p) || /\b(said|says|according to|told|stated|quoted|in an interview)\b/i.test(p);
-    const hasNewsFragment = /\b(announced|reported|revealed|in a statement)\b/i.test(p);
-    const hasNewsletter = /\b(subscribe|newsletter|sign up|e-newsletter)\b/i.test(p);
+    const isTimeBasedOpening = timeBasedPatterns.some(pattern => pattern.test(firstSentence));
     
-    return !timeBasedPatterns.some(pattern => pattern.test(firstSentence)) 
-      && !hasQuotes 
-      && !hasNewsFragment 
-      && !hasNewsletter;
+    // Only filter if it's a time-based opening AND the paragraph is short/incomplete
+    if (isTimeBasedOpening && (p.length < 100 || !isValidSentence(p.trim() + '.'))) {
+      return false;
+    }
+    
+    // Always filter newsletter references
+    const hasNewsletter = /\b(subscribe|newsletter|sign up|e-newsletter)\b/i.test(p);
+    if (hasNewsletter) return false;
+    
+    // Otherwise, keep it - don't filter based on quotes or news fragments
+    return true;
   });
 }
 
