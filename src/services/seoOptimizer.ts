@@ -14,6 +14,7 @@ interface SEOResult {
   metaTitle: string;
   metaDescription: string;
   topics: string;
+  primaryKeyword?: string;
 }
 
 /**
