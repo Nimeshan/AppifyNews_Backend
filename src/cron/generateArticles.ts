@@ -13,6 +13,7 @@ import { generateMetaDescription as generateMetaDescriptionCode } from "../servi
 import { generateImage } from "../services/imageGenerator";
 import { uploadImageToRailbucket } from "../services/railbucket";
 import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/contentParser";
+import { validateArticleContent } from "../services/contentValidator";
 import { prisma } from "../lib/prisma";
 import slugify from "slugify";
 
@@ -132,6 +133,70 @@ export async function generateArticles(): Promise<void> {
       // Step 7: Parse HTML into content blocks
       const contentBlocks = parseContentBlocks(htmlContent);
       const slug = generateSlug(blogTitle); // Use generated title for slug
+      
+      // Step 7.5: Strict quality validation before publishing
+      // Extract primary keyword from SEO result or content
+      // The SEO optimizer should have identified a primary keyword
+      let primaryKeyword: string | undefined;
+      
+      // Try to extract from common keyword patterns in the content
+      const contentLower = seoResult.optimizedContent.toLowerCase();
+      const keywordPatterns = [
+        /ai (app|software|integration|development|platform)/i,
+        /digital transformation/i,
+        /app development/i,
+        /workforce automation/i,
+        /workplace automation/i,
+        /business automation/i,
+        /technology (strategy|adoption)/i,
+        /emerging technology/i,
+      ];
+      
+      for (const pattern of keywordPatterns) {
+        const match = seoResult.optimizedContent.match(pattern);
+        if (match) {
+          primaryKeyword = match[0];
+          break;
+        }
+      }
+      
+      // If no keyword found, try to extract from title or first paragraph
+      if (!primaryKeyword) {
+        const firstParagraph = contentBlocks.find((b) => b.type === "paragraph" && b.text)?.text || "";
+        for (const pattern of keywordPatterns) {
+          const match = firstParagraph.match(pattern);
+          if (match) {
+            primaryKeyword = match[0];
+            break;
+          }
+        }
+      }
+      
+      const validation = validateArticleContent(
+        seoResult.optimizedContent,
+        contentBlocks,
+        primaryKeyword
+      );
+
+      if (!validation.isValid) {
+        console.error(`[Pipeline] ❌ Article validation failed for: ${item.title}`);
+        console.error(`[Pipeline] Validation errors:`);
+        validation.errors.forEach((error) => console.error(`  - ${error}`));
+        if (validation.warnings.length > 0) {
+          console.warn(`[Pipeline] Validation warnings:`);
+          validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
+        }
+        console.log(`[Pipeline] ⚠️  Skipping article due to quality validation failures`);
+        continue; // Skip this article - don't publish
+      }
+
+      if (validation.warnings.length > 0) {
+        console.warn(`[Pipeline] ⚠️  Validation warnings for: ${item.title}`);
+        validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
+      } else {
+        console.log(`[Pipeline] ✅ Article passed all quality validations`);
+      }
+      
       // Generate excerpt (limit to reasonable length for database)
       let excerpt = generateExcerpt(contentBlocks, metaDescription) || metaDescription.slice(0, 250);
       // Ensure excerpt doesn't exceed database limits (typically 500-1000 chars, but be safe with 500)
