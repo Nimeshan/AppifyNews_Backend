@@ -80,7 +80,7 @@ async function fetchArticleContent(url: string): Promise<{ content: string; imag
                      !lower.includes("save this story") &&
                      !lower.includes("photo-illustration:");
             })
-            .slice(0, 20) // Take first 20 paragraphs
+            .slice(0, 50) // Take up to 50 paragraphs for longer content
             .join("\n\n");
 
           resolve({ 
@@ -270,17 +270,18 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
         && !lowerTrimmed.includes("wired staff");
     });
     
-    // Get more paragraphs for a comprehensive, longer article (targeting 3000-4000 words)
-    // Extract more paragraphs to build depth
-    const introParagraphs = paragraphs.slice(0, 5); // 5 intro paragraphs (300-500 words)
-    const whatIsParagraphs = paragraphs.slice(5, 10); // 5 paragraphs for "What is" section (400-600 words)
-    const whyMattersParagraphs = paragraphs.slice(10, 15); // 5 paragraphs for "Why it matters" (400-600 words)
-    const howWorksParagraphs = paragraphs.slice(15, 22); // 7 paragraphs for "How it works" (500-800 words)
-    const bestPracticesParagraphs = paragraphs.slice(22, 27); // 5 paragraphs for best practices (400-600 words)
-    const caseStudiesParagraphs = paragraphs.slice(27, 32); // 5 paragraphs for case studies (400-600 words)
-    const challengesParagraphs = paragraphs.slice(32, 36); // 4 paragraphs for challenges (300-500 words)
-    const futureParagraphs = paragraphs.slice(36, 39); // 3 paragraphs for future (300-400 words)
-    const conclusionParagraphs = paragraphs.slice(39, 42); // 3 conclusion paragraphs (300-400 words)
+    // Get more paragraphs for a comprehensive, longer article (targeting 1200-1600 words for SEO)
+    // Extract more paragraphs to build depth - use all available paragraphs
+    const totalParagraphs = paragraphs.length;
+    const introParagraphs = paragraphs.slice(0, Math.min(3, totalParagraphs)); // 3 intro paragraphs
+    const whatIsParagraphs = paragraphs.slice(3, Math.min(7, totalParagraphs)); // 4 paragraphs for main section
+    const whyMattersParagraphs = paragraphs.slice(7, Math.min(11, totalParagraphs)); // 4 paragraphs
+    const howWorksParagraphs = paragraphs.slice(11, Math.min(16, totalParagraphs)); // 5 paragraphs
+    const bestPracticesParagraphs = paragraphs.slice(16, Math.min(20, totalParagraphs)); // 4 paragraphs
+    const caseStudiesParagraphs = paragraphs.slice(20, Math.min(24, totalParagraphs)); // 4 paragraphs
+    const challengesParagraphs = paragraphs.slice(24, Math.min(27, totalParagraphs)); // 3 paragraphs
+    const futureParagraphs = paragraphs.slice(27, Math.min(30, totalParagraphs)); // 3 paragraphs
+    const conclusionParagraphs = paragraphs.slice(30, Math.min(33, totalParagraphs)); // 3 paragraphs
     
     // Use RSS title for the main heading, or create a descriptive one
     const mainHeading = item.title || "Latest Technology Developments";
@@ -309,8 +310,8 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
       }
     }
     
-    // What is [Topic]? section (400-600 words)
-    blogSections.push("", `## What is ${contentAnalysis.mainSectionHeading}?`);
+    // Main section - avoid generic "What is" phrasing
+    blogSections.push("", `## ${contentAnalysis.mainSectionHeading}`);
     if (whatIsParagraphs.length > 0) {
       blogSections.push(...whatIsParagraphs);
     } else {
@@ -319,8 +320,9 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
       blogSections.push("The integration of new technologies and methodologies is reshaping how organizations operate and compete in the digital marketplace.");
     }
     
-    // Why [Topic] Matters section (400-600 words)
-    blogSections.push("", `## Why ${contentAnalysis.mainSectionHeading} Matters`);
+    // Second main section - avoid generic phrasing
+    if (contentAnalysis.secondSectionHeading) {
+      blogSections.push("", `## ${contentAnalysis.secondSectionHeading}`);
     if (whyMattersParagraphs.length > 0) {
       blogSections.push(...whyMattersParagraphs);
     } else {
@@ -329,52 +331,37 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
       blogSections.push("The evolving technology landscape presents both challenges and opportunities for businesses seeking to innovate.");
     }
     
-    // How [Topic] Works section (500-800 words)
-    if (contentAnalysis.secondSectionHeading) {
-      blogSections.push("", `## How ${contentAnalysis.secondSectionHeading} Works`);
       if (howWorksParagraphs.length > 0) {
         blogSections.push(...howWorksParagraphs);
+      } else if (whyMattersParagraphs.length > 0) {
+        blogSections.push(...whyMattersParagraphs);
       } else {
         blogSections.push(contentAnalysis.secondSectionContent[0]);
         blogSections.push(contentAnalysis.secondSectionContent[1]);
-        blogSections.push("From a technical perspective, this development highlights the importance of staying current with emerging technologies and industry best practices.");
       }
     }
     
-    // Best Practices section (400-600 words)
-    blogSections.push("", "## Best Practices and Implementation");
-    if (bestPracticesParagraphs.length > 0) {
-      blogSections.push(...bestPracticesParagraphs);
-    } else {
-      blogSections.push("For businesses looking to leverage these developments, understanding best practices is crucial for successful implementation.");
-      blogSections.push("Organizations should focus on staying current with technological advances and adapting quickly to new opportunities.");
+    // Best Practices section - only if we have content
+    if (bestPracticesParagraphs.length > 0 || caseStudiesParagraphs.length > 0) {
+      blogSections.push("", "## Implementation Strategies");
+      if (bestPracticesParagraphs.length > 0) {
+        blogSections.push(...bestPracticesParagraphs);
+      }
+      if (caseStudiesParagraphs.length > 0) {
+        blogSections.push(...caseStudiesParagraphs);
+      }
     }
     
-    // Case Studies section (400-600 words)
-    blogSections.push("", "## Case Studies and Real-World Examples");
-    if (caseStudiesParagraphs.length > 0) {
-      blogSections.push(...caseStudiesParagraphs);
-    } else {
-      blogSections.push("Real-world examples demonstrate the practical applications and benefits of these technological developments.");
-      blogSections.push("Companies that have successfully implemented these solutions have seen measurable improvements in efficiency and competitive positioning.");
-    }
-    
-    // Common Challenges section (300-500 words)
-    blogSections.push("", "## Common Challenges and Solutions");
+    // Common Challenges section - only if we have content
     if (challengesParagraphs.length > 0) {
+      blogSections.push("", "## Key Considerations");
       blogSections.push(...challengesParagraphs);
-    } else {
-      blogSections.push("While these developments offer significant opportunities, organizations may face challenges during implementation.");
-      blogSections.push("Understanding common pitfalls and having a clear strategy can help businesses navigate these challenges successfully.");
     }
     
-    // Future of [Topic] section (300-400 words)
-    blogSections.push("", `## Future of ${contentAnalysis.mainSectionHeading}`);
+    // Future section - only if we have content
     if (futureParagraphs.length > 0) {
+      blogSections.push("", `## Industry Outlook`);
       blogSections.push(...futureParagraphs);
-    } else {
-      blogSections.push("Looking ahead, these developments point to an evolving landscape that will continue to shape the technology industry.");
-      blogSections.push("Organizations that embrace innovation and adapt to new technologies will be best positioned for long-term success.");
     }
     
     // App Development implications (only if relevant)
@@ -385,18 +372,78 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
       blogSections.push(contentAnalysis.appDevContent[2]);
     }
     
-    // Conclusion section (300-400 words)
-    blogSections.push("", "## Conclusion");
+    // Conclusion section - use actual content, avoid generic phrasing
     if (conclusionParagraphs.length > 0) {
+      blogSections.push("", "## Summary");
       blogSections.push(...conclusionParagraphs);
-    } else {
-      blogSections.push(contentAnalysis.conclusionContent[0]);
-      blogSections.push(contentAnalysis.conclusionContent[1]);
-      blogSections.push(contentAnalysis.conclusionContent[2]);
+    } else if (paragraphs.length > 0) {
+      // Use remaining paragraphs instead of generic conclusion
+      const remainingParagraphs = paragraphs.slice(33, Math.min(36, paragraphs.length));
+      if (remainingParagraphs.length > 0) {
+        blogSections.push("", "## Summary");
+        blogSections.push(...remainingParagraphs);
+      }
     }
 
-    const blogContent = blogSections.join("\n\n");
-    const wordCount = blogContent.split(/\s+/).length;
+    let blogContent = blogSections.join("\n\n");
+    let wordCount = blogContent.split(/\s+/).length;
+
+    // If content is too short, expand it by adding more analysis and context
+    if (wordCount < 1200) {
+      const sections = blogContent.split(/\n\n+/);
+      
+      // Add more paragraphs from source if available
+      if (paragraphs.length > 33) {
+        const additionalParagraphs = paragraphs.slice(33, Math.min(50, paragraphs.length));
+        if (additionalParagraphs.length > 0) {
+          const conclusionIndex = sections.findIndex(s => s.trim().startsWith("## Summary") || s.trim().startsWith("## Conclusion"));
+          if (conclusionIndex > 0) {
+            sections.splice(conclusionIndex, 0, "", ...additionalParagraphs);
+            blogContent = sections.join("\n\n");
+            wordCount = blogContent.split(/\s+/).length;
+          }
+        }
+      }
+      
+      // If still short, add contextual analysis paragraphs
+      if (wordCount < 1200) {
+        const contextualParagraphs = [
+          "The technology landscape continues to evolve rapidly, with new developments reshaping how businesses operate and compete in the digital marketplace.",
+          "Organizations that stay informed about these changes and adapt their strategies accordingly are better positioned to leverage emerging opportunities.",
+          "Understanding the implications of technological advances is crucial for making informed decisions about digital transformation initiatives.",
+          "The integration of new technologies requires careful planning and strategic thinking to maximize benefits while minimizing potential risks.",
+          "Industry leaders recognize the importance of staying current with technological trends and investing in innovation to maintain competitive advantage.",
+          "As the digital economy continues to grow, businesses must be prepared to embrace change and adapt to new ways of working.",
+          "The successful implementation of new technologies often depends on having the right expertise and resources in place.",
+          "Companies that invest in understanding emerging technologies are more likely to identify opportunities for growth and improvement.",
+          "Strategic planning and execution are essential for organizations looking to capitalize on technological innovations.",
+          "The ability to adapt quickly to changing market conditions and technological developments is a key differentiator for successful businesses."
+        ];
+        
+        // Find a good place to insert contextual content (before conclusion, or at end if no conclusion)
+        let insertIndex = sections.findIndex(s => s.trim().startsWith("## Summary") || s.trim().startsWith("## Conclusion"));
+        if (insertIndex < 0) {
+          insertIndex = sections.length; // Insert at end if no conclusion found
+        }
+        
+        // Calculate how many paragraphs we need to add (target: 1200 words, each paragraph ~50 words)
+        const wordsNeeded = 1200 - wordCount;
+        const paragraphsNeeded = Math.ceil(wordsNeeded / 50);
+        const paragraphsToAdd = contextualParagraphs.slice(0, Math.min(paragraphsNeeded, contextualParagraphs.length));
+        
+        if (paragraphsToAdd.length > 0) {
+          if (insertIndex > 0 && sections[insertIndex - 1]?.trim().startsWith("##")) {
+            // Insert after the last heading
+            sections.splice(insertIndex, 0, "", ...paragraphsToAdd);
+          } else {
+            // Insert with a heading
+            sections.splice(insertIndex, 0, "", "## Strategic Implications", ...paragraphsToAdd);
+          }
+          blogContent = sections.join("\n\n");
+          wordCount = blogContent.split(/\s+/).length;
+        }
+      }
+    }
 
     console.log(`[Code] Generated ${wordCount} words from source content.`);
     return blogContent;

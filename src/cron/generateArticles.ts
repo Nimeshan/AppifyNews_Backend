@@ -82,11 +82,12 @@ export async function generateArticles(): Promise<void> {
       
       // Strong alignment indicators for our core topics
       const hasStrongAlignment = 
-        // AI software (including AI agents, AI tools, machine learning, AI industry)
+        // AI software (including AI agents, AI tools, machine learning, AI industry, OpenAI)
         (itemContent.includes("ai software") || itemContent.includes("artificial intelligence software") ||
          itemContent.includes("machine learning software") || itemContent.includes("ai platform") ||
          itemContent.includes("ai agent") || itemContent.includes("ai tool") || itemContent.includes("ai system") ||
          itemContent.includes("ai industry") || itemContent.includes("ai startup") ||
+         itemContent.includes("openai") || (itemContent.includes("open") && itemContent.includes("ai")) ||
          (itemContent.includes("artificial intelligence") && (itemContent.includes("software") || itemContent.includes("development") || itemContent.includes("business") || itemContent.includes("industry")))) ||
         // Digital transformation
         (itemContent.includes("digital transformation") || itemContent.includes("digital strategy") ||
