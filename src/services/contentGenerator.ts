@@ -84,24 +84,27 @@ Topic Description: ${blueprint.description}`,
    - DO NOT include a "Conclusion" section - end with the last content section
 
 4. **Content Requirements - CRITICAL FOR AUTHORITY**:
-   - **Definition Section**: Start with ${blueprint.sections[0]} - identify a real business pain or strategic challenge, hook enterprise readers, set authoritative tone (3-4 paragraphs)
-   - **Technical Depth**: Include specific technical details:
-     * Architecture patterns (APIs vs custom models, cloud vs edge, event-driven vs state machine)
-     * System design considerations (data pipelines, inference layers, model hosting, monitoring)
-     * Cost implications and trade-offs (vendor lock-in, latency, scalability)
-     * Model lifecycle and governance (retraining, drift detection, compliance)
-   - **Trade-offs/Risks Section**: Must include deep analysis of:
-     * Technical risks (hallucinations, bias, security vulnerabilities)
-     * Operational risks (governance, compliance, ongoing maintenance)
-     * Strategic trade-offs (cost vs performance, vendor lock-in, scalability)
-     * Each trade-off or consideration must be expanded into a FULL ANALYTICAL PARAGRAPH (minimum 120-180 words) with specific details, examples, and implications
+   - **MANDATORY SECTIONS** (use the exact headings from blueprint):
+     * **Definition Section** (${blueprint.sections[0]}): Precise, topic-specific definition - identify a real business pain or strategic challenge, hook enterprise readers, set authoritative tone (3-4 paragraphs, 120-180 words each)
+     * **How It Works Section** (${blueprint.sections[1]}): Real mechanics - APIs, data flow, architecture, system components, inference layers, orchestration patterns (2-3 paragraphs, 120-180 words each)
+     * **Implementation Strategy Section** (${blueprint.sections[2]}): Step-by-step guidance AND real constraints - which technologies/frameworks and why, architecture decisions, deployment patterns, cost constraints, integration complexity, data quality requirements (2-3 paragraphs, 120-180 words each)
+     * **Risks and Trade-Offs Section** (${blueprint.sections[3]}): Must include mitigation strategies, not just listing risks - technical risks with mitigation, operational risks with solutions, strategic trade-offs with best-fit scenarios (2-3 paragraphs, 120-180 words each)
+     * **Decision Framework Section** (${blueprint.sections[4]}): How to evaluate tools/approaches, what to choose when - use X when... avoid when..., evaluation criteria, selection guidelines (2-3 paragraphs, 120-180 words each)
+   
+   - **DEPTH REQUIREMENTS - CRITICAL**:
+     * Every major "benefit" or "step" must be expanded into a FULL ANALYTICAL PARAGRAPH (120-180 words each)
+     * Each paragraph must contain at least one of:
+       - A technical detail (e.g., inference, edge vs cloud, latency, model drift, RAG, APIs, orchestration, data pipelines, model hosting)
+       - A realistic constraint (cost, compliance, data quality, integration complexity, vendor lock-in, scalability limits)
+       - A mitigation or best-fit scenario ("use X when... avoid when...", "best for... not suitable for...")
      * DO NOT list trade-offs as single sentences - each must be a complete paragraph with depth
      * Each paragraph must include: clear explanation, practical example, trade-off/consideration, and specific terminology
-   - **Implementation Depth**: Provide specific, actionable guidance with technical specifics:
-     * Which technologies/frameworks and why
-     * Architecture decisions and their implications
-     * Deployment patterns and their trade-offs
-     * Real-world constraints and how to address them
+   
+   - **AVOID LIST-ONLY SECTIONS**:
+     * You may use bullet points, but NEVER as the entire section
+     * Bullet lists must be followed by explanatory paragraphs (120-180 words each)
+     * If you use bullets, they must be expanded into full paragraphs immediately after
+   
    - **Use Cases**: Include real-world examples with technical context
    - **Company Examples**: Use the RSS company only as a supporting example (1-2 sentences max), not the main focus
    - **NO Promotional Language**: Do NOT include phrases like "Learn more about our services" or "Contact us" - this is authority content, not a service page

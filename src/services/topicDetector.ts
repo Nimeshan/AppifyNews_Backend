@@ -98,10 +98,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "What Is an AI Agent? Definition, Benefits, Implementation, and Enterprise Applications",
       sections: [
         "What Is an AI Agent?",
-        "AI Agent Architecture: Perception, Decision Logic, and Execution Layers",
-        "Enterprise Deployment Patterns and Integration Strategies",
-        "Governance, Security, and Risk Management for AI Agents",
-        "Trade-Offs and Operational Considerations"
+        "How AI Agents Work: Perception, Decision Logic, and Execution Architecture",
+        "Implementation Strategy for AI Agents: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs for AI Agents: Mitigation Strategies",
+        "Decision Framework: How to Evaluate AI Agent Platforms and Deployment Approaches"
       ],
       description: "AI agent technology, architecture layers, enterprise deployment, system integration, governance, security, and trade-offs"
     },
@@ -110,10 +110,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "AI App Development: Definition, Benefits, Implementation, and Best Practices",
       sections: [
         "What Is AI App Development?",
-        "Selecting AI Architecture: APIs vs Custom Models",
-        "AI App Architecture Considerations",
-        "Risks and Trade-Offs in AI App Development",
-        "Implementation Strategies and Deployment Patterns"
+        "How AI App Development Works: APIs, Data Flow, and System Architecture",
+        "Implementation Strategy for AI Apps: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in AI App Development: Mitigation Strategies",
+        "Decision Framework: How to Evaluate AI App Development Tools and Approaches"
       ],
       description: "AI app development, architecture selection, system design, inference layers, model lifecycle, governance, and trade-offs"
     },
@@ -134,10 +134,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "Workflow Automation: Definition, Benefits, Implementation, and Enterprise Guide",
       sections: [
         "What Is Workflow Automation?",
-        "Orchestration Architecture: Event-Driven vs State Machine Patterns",
-        "Integration Complexity and System Dependencies",
-        "Cost-Benefit Analysis and ROI Measurement",
-        "Operational Trade-Offs, Governance, and Risk Management"
+        "How Workflow Automation Works: Orchestration, Event-Driven Patterns, and System Components",
+        "Implementation Strategy for Workflow Automation: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in Workflow Automation: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Workflow Automation Tools and Approaches"
       ],
       description: "Workflow automation, orchestration architecture, integration patterns, cost-benefit analysis, governance, and risk management"
     },
