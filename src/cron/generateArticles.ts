@@ -13,10 +13,8 @@ import { generateMetaDescription as generateMetaDescriptionCode } from "../servi
 import { generateImage } from "../services/imageGenerator";
 import { uploadImageToRailbucket } from "../services/railbucket";
 import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/contentParser";
-import { validateArticleContent } from "../services/contentValidator";
 import { prisma } from "../lib/prisma";
 import slugify from "slugify";
-import { adjustContentForValidation } from "../services/preValidationAdjuster";
 
 /**
  * Generation Mode Selection:
@@ -151,10 +149,6 @@ export async function generateArticles(): Promise<void> {
         ? await optimizeForSEO(rawBlog, item.categories, item.title)
         : await optimizeForSEO(rawBlog);
 
-      // Step 3.5: Pre-validation adjustment - ensure content passes validation
-      const primaryKeyword = seoResult.primaryKeyword;
-      seoResult.optimizedContent = adjustContentForValidation(seoResult.optimizedContent, primaryKeyword);
-
       // Step 4: Convert to clean HTML (OpenAI or Code)
       const htmlContent = await convertToHTML(seoResult.optimizedContent);
 
@@ -169,32 +163,6 @@ export async function generateArticles(): Promise<void> {
       // Step 7: Parse HTML into content blocks
       const contentBlocks = parseContentBlocks(htmlContent);
       const slug = generateSlug(blogTitle); // Use generated title for slug
-      
-      // Step 7.5: Strict quality validation before publishing
-      const validation = validateArticleContent(
-        seoResult.optimizedContent,
-        contentBlocks,
-        primaryKeyword
-      );
-
-      if (!validation.isValid) {
-        console.error(`[Pipeline] ❌ Article validation failed for: ${item.title}`);
-        console.error(`[Pipeline] Validation errors:`);
-        validation.errors.forEach((error) => console.error(`  - ${error}`));
-        if (validation.warnings.length > 0) {
-          console.warn(`[Pipeline] Validation warnings:`);
-          validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
-        }
-        console.log(`[Pipeline] ⚠️  Skipping article due to quality validation failures`);
-        continue; // Skip this article - don't publish
-      }
-
-      if (validation.warnings.length > 0) {
-        console.warn(`[Pipeline] ⚠️  Validation warnings for: ${item.title}`);
-        validation.warnings.forEach((warning) => console.warn(`  - ${warning}`));
-      } else {
-        console.log(`[Pipeline] ✅ Article passed all quality validations`);
-      }
       
       // Generate excerpt (limit to reasonable length for database)
       let excerpt = generateExcerpt(contentBlocks, metaDescription) || metaDescription.slice(0, 250);
