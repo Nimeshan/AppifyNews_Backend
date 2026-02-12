@@ -521,21 +521,39 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
         let currentWordCount = wordCount;
         const targetWords = 800;
         
-        // Only use remaining source paragraphs - NO generic filler
-        if (paragraphs.length > 42 && currentWordCount < targetWords) {
-          const remainingParagraphs = paragraphs.slice(42, Math.min(80, paragraphs.length))
-            .filter(p => {
+        // Use ALL remaining source paragraphs - be more aggressive
+        // Check what paragraphs we've already used
+        const usedParagraphIndices = new Set<number>();
+        sections.forEach(s => {
+          if (s.trim() && !s.trim().startsWith("##")) {
+            // Find which paragraph this matches
+            paragraphs.forEach((p, idx) => {
               const fingerprint = p.trim().toLowerCase().substring(0, 200);
-              if (existingContent.has(fingerprint)) return false;
-              existingContent.add(fingerprint);
-              return true;
+              if (s.trim().toLowerCase().substring(0, 200) === fingerprint) {
+                usedParagraphIndices.add(idx);
+              }
             });
-          
-          if (remainingParagraphs.length > 0) {
-            sections.splice(insertIndex, 0, "", ...remainingParagraphs);
-            blogContent = sections.join("\n\n");
-            currentWordCount = blogContent.split(/\s+/).length;
           }
+        });
+        
+        // Get ALL unused paragraphs
+        const remainingParagraphs = paragraphs
+          .map((p, idx) => ({ p, idx }))
+          .filter(({ p, idx }) => {
+            if (usedParagraphIndices.has(idx)) return false;
+            const fingerprint = p.trim().toLowerCase().substring(0, 200);
+            if (existingContent.has(fingerprint)) return false;
+            existingContent.add(fingerprint);
+            return true;
+          })
+          .map(({ p }) => p);
+        
+        // Add all remaining paragraphs until we reach target
+        if (remainingParagraphs.length > 0 && currentWordCount < targetWords) {
+          // Add all remaining paragraphs
+          sections.splice(insertIndex, 0, "", ...remainingParagraphs);
+          blogContent = sections.join("\n\n");
+          currentWordCount = blogContent.split(/\s+/).length;
         }
         
         wordCount = currentWordCount;
