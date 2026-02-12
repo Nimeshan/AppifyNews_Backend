@@ -122,10 +122,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "What Is a Startup Accelerator? Definition, Benefits, Implementation, and Program Structure",
       sections: [
         "What Is a Startup Accelerator?",
-        "Funding Mechanics and Equity Structures",
-        "Ecosystem Incentives and Strategic Partnerships",
-        "Strategic Implications for Founders",
-        "Risks and Trade-Offs for Startup Founders"
+        "How Startup Accelerators Work: Funding Mechanics, Equity Structures, and Program Components",
+        "Implementation Strategy for Startup Accelerators: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs for Startup Founders: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Startup Accelerator Programs and Approaches"
       ],
       description: "Startup accelerators, funding mechanics, ecosystem incentives, and strategic implications"
     },
