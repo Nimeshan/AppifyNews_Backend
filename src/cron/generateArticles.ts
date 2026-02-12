@@ -1,4 +1,4 @@
-import { fetchNewRSSItems } from "../services/rss";
+import { fetchNewRSSItems, fetchAllRSSItems } from "../services/rss";
 import { generateBlogContent as generateBlogContentOpenAI } from "../services/contentGenerator";
 import { optimizeForSEO as optimizeForSEOOpenAI } from "../services/seoOptimizer";
 import { convertToHTML as convertToHTMLOpenAI } from "../services/htmlConverter";
@@ -44,9 +44,12 @@ const generateMetaDescription = USE_CODE_GENERATION ? generateMetaDescriptionCod
  */
 export async function generateArticles(): Promise<void> {
   const maxArticles = parseInt(process.env.MAX_ARTICLES_PER_RUN || "3");
+  const fetchAll = process.env.FETCH_ALL_RSS === "true"; // Set to true to fetch all items, including previously processed ones
 
-  // Step 1: Fetch new RSS items
-  const newItems = await fetchNewRSSItems();
+  // Step 1: Fetch RSS items (new only, or all if FETCH_ALL_RSS=true)
+  const newItems = fetchAll 
+    ? await fetchAllRSSItems(50) // Fetch up to 50 items from all feeds
+    : await fetchNewRSSItems();
 
   if (newItems.length === 0) {
     console.log("[Pipeline] No new articles to process.");
@@ -62,17 +65,29 @@ export async function generateArticles(): Promise<void> {
     try {
       console.log(`\n[Pipeline] --- Processing: ${item.title} ---`);
       
+      // Check if article already exists (when using fetchAllRSSItems, we still want to skip existing ones)
+      const existingArticle = await prisma.article.findUnique({
+        where: { sourceUrl: item.link },
+        select: { id: true, slug: true },
+      });
+      
+      if (existingArticle) {
+        console.log(`[Pipeline] ⚠️  Article already exists: ${existingArticle.slug}. Skipping.`);
+        continue;
+      }
+      
       // Pre-filter: Check if article aligns with our core topics for long-term SEO authority
       // Core topics: AI software, Digital transformation, App development, Workforce automation, Emerging technology strategy
       const itemContent = (item.contentSnippet || item.content || item.title || "").toLowerCase();
       
       // Strong alignment indicators for our core topics
       const hasStrongAlignment = 
-        // AI software (including AI agents, AI tools, machine learning)
+        // AI software (including AI agents, AI tools, machine learning, AI industry)
         (itemContent.includes("ai software") || itemContent.includes("artificial intelligence software") ||
          itemContent.includes("machine learning software") || itemContent.includes("ai platform") ||
          itemContent.includes("ai agent") || itemContent.includes("ai tool") || itemContent.includes("ai system") ||
-         (itemContent.includes("artificial intelligence") && (itemContent.includes("software") || itemContent.includes("development") || itemContent.includes("business")))) ||
+         itemContent.includes("ai industry") || itemContent.includes("ai startup") ||
+         (itemContent.includes("artificial intelligence") && (itemContent.includes("software") || itemContent.includes("development") || itemContent.includes("business") || itemContent.includes("industry")))) ||
         // Digital transformation
         (itemContent.includes("digital transformation") || itemContent.includes("digital strategy") ||
          itemContent.includes("digital innovation") || itemContent.includes("digital adoption")) ||
@@ -83,11 +98,16 @@ export async function generateArticles(): Promise<void> {
         // Workforce automation
         (itemContent.includes("workforce automation") || itemContent.includes("workplace automation") ||
          itemContent.includes("business automation") || itemContent.includes("process automation") ||
-         itemContent.includes("automation") && (itemContent.includes("work") || itemContent.includes("business") || itemContent.includes("workplace"))) ||
+         (itemContent.includes("automation") && (itemContent.includes("work") || itemContent.includes("business") || itemContent.includes("workplace"))) ||
+         (itemContent.includes("replacing workers") && itemContent.includes("ai")) ||
+         (itemContent.includes("workers") && itemContent.includes("ai") && (itemContent.includes("replace") || itemContent.includes("automation")))) ||
         // Emerging technology strategy
         (itemContent.includes("emerging technology") || itemContent.includes("tech strategy") ||
          itemContent.includes("technology adoption") || itemContent.includes("innovation strategy") ||
-         itemContent.includes("technology strategy"));
+         itemContent.includes("technology strategy")) ||
+        // Startup/accelerator with tech focus (for articles like "AI Industry Rivals Are Teaming Up on a Startup Accelerator")
+        ((itemContent.includes("startup") || itemContent.includes("accelerator")) && 
+         (itemContent.includes("ai") || itemContent.includes("tech") || itemContent.includes("software") || itemContent.includes("digital")));
       
       // Secondary indicators (weaker but still relevant)
       const hasSecondaryAlignment = 

@@ -119,3 +119,74 @@ export async function fetchNewRSSItems(): Promise<RSSItem[]> {
   console.log(`[RSS] ${allNewItems.length} new items to process from all feeds.`);
   return allNewItems;
 }
+
+/**
+ * Fetch ALL articles from RSS feeds (including ones that may have been processed before).
+ * Useful for regenerating deleted articles or processing older content.
+ */
+export async function fetchAllRSSItems(limit?: number): Promise<RSSItem[]> {
+  const feedUrls = getRSSFeedUrls();
+  
+  if (feedUrls.length === 0) {
+    throw new Error("No RSS feed URLs configured");
+  }
+
+  console.log(`[RSS] Fetching ALL items from ${feedUrls.length} feed(s) (ignoring existing articles)...`);
+
+  const allItems: RSSItem[] = [];
+
+  // Fetch from all feeds
+  for (const feedUrl of feedUrls) {
+    try {
+      console.log(`[RSS] Fetching feed: ${feedUrl}`);
+      const feed = await parser.parseURL(feedUrl);
+      console.log(`[RSS] Found ${feed.items.length} items in feed: ${feedUrl}`);
+
+      // Get ALL items, don't filter by existing
+      for (const item of feed.items) {
+        if (!item.link) continue;
+
+        // Extract image from RSS item
+        let imageUrl: string | undefined;
+        
+        // Check enclosure first (RSS standard for images)
+        if (item.enclosure?.url) {
+          imageUrl = item.enclosure.url;
+        }
+        // Check content for img tags
+        else if (item.content) {
+          const imgMatch = item.content.match(/<img[^>]+src="([^"]+)"[^>]*>/i);
+          if (imgMatch && imgMatch[1]) {
+            imageUrl = imgMatch[1];
+          }
+        }
+        // Check itunes:image or media:content (common RSS extensions)
+        else if ((item as any)["itunes:image"]?.href) {
+          imageUrl = (item as any)["itunes:image"].href;
+        }
+        else if ((item as any)["media:content"]?.url) {
+          imageUrl = (item as any)["media:content"].url;
+        }
+
+        allItems.push({
+          title: item.title || "Untitled",
+          link: item.link,
+          contentSnippet: item.contentSnippet,
+          content: item.content,
+          pubDate: item.pubDate,
+          categories: item.categories,
+          enclosure: item.enclosure,
+          imageUrl,
+        });
+      }
+    } catch (error: any) {
+      console.error(`[RSS] Failed to fetch feed ${feedUrl}:`, error.message);
+      // Continue with other feeds even if one fails
+    }
+  }
+
+  // Apply limit if specified
+  const items = limit ? allItems.slice(0, limit) : allItems;
+  console.log(`[RSS] Returning ${items.length} items from all feeds (${limit ? `limited to ${limit}` : 'no limit'}).`);
+  return items;
+}

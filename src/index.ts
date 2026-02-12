@@ -57,10 +57,10 @@ app.get("/health", async (_req, res) => {
   }
 });
 
-// Cron job: generate articles every 3 hours
-// Sites publish ~1.7 articles/hour, so checking every 3 hours catches ~5 articles per check
+// Cron job: generate articles every hour
+// More frequent checks ensure we catch new articles faster and maintain fresh content
 if (process.env.ENABLE_CRON === "true") {
-  cron.schedule("0 */3 * * *", async () => {
+  cron.schedule("0 * * * *", async () => {
     console.log("[CRON] Starting article generation...");
     try {
       await generateArticles();
@@ -69,7 +69,7 @@ if (process.env.ENABLE_CRON === "true") {
       console.error("[CRON] Article generation failed:", error);
     }
   });
-  console.log("[CRON] Scheduled article generation every 3 hours.");
+  console.log("[CRON] Scheduled article generation every hour.");
 }
 
 app.listen(PORT, () => {
