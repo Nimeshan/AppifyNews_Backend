@@ -146,10 +146,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "Web3 Infrastructure: Definition, Benefits, Implementation, and Enterprise Applications",
       sections: [
         "What Is the Web3 Model?",
-        "Infrastructure Stack and Technology Components",
-        "Token Economics and Incentive Structures",
-        "Regulatory Concerns and Compliance Requirements",
-        "Enterprise Implications and Adoption Strategies"
+        "How Web3 Infrastructure Works: Blockchain Architecture, Smart Contracts, and System Components",
+        "Implementation Strategy for Web3 Infrastructure: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in Web3 Infrastructure: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Web3 Infrastructure Tools and Approaches"
       ],
       description: "Web3 infrastructure, technology stack, token economics, regulatory concerns, and enterprise adoption"
     },
@@ -158,10 +158,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "UX/UI Design: Definition, Benefits, Implementation, and Best Practices",
       sections: [
         "What Is UX/UI Design?",
-        "Design Systems and Component Libraries",
-        "User Research and Testing Methodologies",
-        "Implementation Strategies for Design Systems",
-        "Measuring Design Impact and ROI"
+        "How UX/UI Design Works: Design Systems, Component Libraries, and User Research Methods",
+        "Implementation Strategy for UX/UI Design Systems: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in UX/UI Design: Mitigation Strategies",
+        "Decision Framework: How to Evaluate UX/UI Design Tools and Approaches"
       ],
       description: "UX/UI design, design systems, user research, implementation strategies, and design ROI"
     },
@@ -170,10 +170,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "Enterprise Digital Transformation: Definition, Benefits, Implementation, and Strategic Guide",
       sections: [
         "What Is Enterprise Digital Transformation?",
-        "Strategic Planning and Roadmap Development",
-        "Technology Stack and Integration Requirements",
-        "Change Management and Organizational Alignment",
-        "Measuring Success and ROI of Digital Transformation"
+        "How Enterprise Digital Transformation Works: Technology Stack, Integration Patterns, and System Architecture",
+        "Implementation Strategy for Digital Transformation: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in Digital Transformation: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Digital Transformation Tools and Approaches"
       ],
       description: "Enterprise digital transformation, strategic planning, technology stack, change management, and ROI"
     },
@@ -182,10 +182,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "Workforce Automation: Definition, Benefits, Implementation, and Enterprise Guide",
       sections: [
         "What Is Workforce Automation?",
-        "Automation Technologies and Platform Options",
-        "Implementation Strategies and Deployment Approaches",
-        "Cost-Benefit Analysis and ROI Considerations",
-        "Operational Trade-Offs and Risk Management"
+        "How Workforce Automation Works: Automation Technologies, Orchestration, and System Components",
+        "Implementation Strategy for Workforce Automation: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in Workforce Automation: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Workforce Automation Tools and Approaches"
       ],
       description: "Workforce automation, technologies, implementation strategies, cost-benefit analysis, and trade-offs"
     },
@@ -194,10 +194,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "AI Software: Definition, Benefits, Implementation, and Enterprise Applications",
       sections: [
         "What Is AI Software?",
-        "AI Software Architecture and Technology Stack",
-        "Implementation Strategies for AI Software",
-        "Integration Challenges and Solutions",
-        "Enterprise Use Cases and Industry Applications"
+        "How AI Software Works: Architecture, APIs, Data Flow, and System Components",
+        "Implementation Strategy for AI Software: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs in AI Software: Mitigation Strategies",
+        "Decision Framework: How to Evaluate AI Software Tools and Approaches"
       ],
       description: "AI software, architecture, implementation strategies, integration challenges, and enterprise use cases"
     },
@@ -206,10 +206,10 @@ export function getTopicBlueprint(topic: TopicType): TopicBlueprint {
       h1: "Technology Innovation: Definition, Benefits, Implementation, and Strategic Applications",
       sections: [
         "What Is This Technology?",
-        "Key Components and Architecture",
-        "Implementation Strategies and Best Practices",
-        "Benefits and Strategic Advantages",
-        "Industry Applications and Use Cases"
+        "How This Technology Works: Architecture, System Components, and Data Flow",
+        "Implementation Strategy: Step-by-Step Guidance and Real Constraints",
+        "Risks and Trade-Offs: Mitigation Strategies",
+        "Decision Framework: How to Evaluate Tools and Approaches"
       ],
       description: "Technology innovation, architecture, implementation, benefits, and industry applications"
     }
