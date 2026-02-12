@@ -98,7 +98,7 @@ async function fetchArticleContent(url: string): Promise<{ content: string; imag
  * Preserves grammar and readability while making content timeless
  */
 function makeContentEvergreen(content: string): string {
-  return content
+  let result = content
     // Time references - make generic
     .replace(/this (week|month|year|past week|past month)/gi, 'recently')
     .replace(/(today|yesterday|last (week|month|year))/gi, 'recently')
@@ -108,8 +108,15 @@ function makeContentEvergreen(content: string): string {
     .replace(/just (announced|released|launched)/gi, 'announced')
     // First-person to third-person - preserve grammar
     .replace(/I (discovered|found|learned) (this|that) (while|when)/gi, 'Research shows that')
-    .replace(/I had (the|a|an) ([^.!?]+)/gi, 'Organizations have $1 $2')
-    .replace(/I gave ([^.!?]+)/gi, 'Organizations provide $1')
+    // Handle "I had" patterns more carefully
+    .replace(/I had (the|a|an) ([^.!?]+?)(?=\s+[A-Z]|$|\.|,|;)/gi, (match, article, rest) => {
+      // If the rest starts with a verb, make it "Organizations can have..."
+      if (/^(monitor|access|use|configure|set|give|enable)/i.test(rest.trim())) {
+        return `Organizations can have ${article} ${rest}`;
+      }
+      return `Organizations have ${article} ${rest}`;
+    })
+    .replace(/I gave ([^.!?]+)/gi, 'Organizations can provide $1')
     .replace(/I asked ([^.!?]+)/gi, 'Organizations can request $1')
     .replace(/I tried ([^.!?]+)/gi, 'Organizations can attempt $1')
     // Personal references - make professional
@@ -117,12 +124,21 @@ function makeContentEvergreen(content: string): string {
     .replace(/personal (assistant|use)/gi, 'business applications')
     // Remove overly personal statements that break flow
     .replace(/I (figured|thought|decided|wanted)/gi, 'Industry leaders')
-    .replace(/I (was|am|will be)/gi, 'Organizations are')
-    // Fix any remaining broken "Organizations" patterns
-    .replace(/Organizations ([a-z])/g, (match, letter) => `Organizations ${letter.toUpperCase()}`)
-    .replace(/Organizations the ([^.!?]+)/gi, 'Organizations can $1')
-    .replace(/Organizations it ([^.!?]+)/gi, 'Organizations can provide $1')
-    .replace(/Organizations ([A-Z][a-z]+) to ([^.!?]+)/gi, 'Organizations can enable $1 to $2');
+    .replace(/I (was|am|will be)/gi, 'Organizations are');
+  
+  // Cleanup pass: Fix any remaining broken "Organizations" patterns
+  result = result
+    // Fix "Organizations the [noun] [verb]" -> "Organizations can have the [noun] [verb]"
+    .replace(/Organizations (the|a|an) ([a-z][^.!?]*?)\s+(monitor|access|use|configure|set|give|enable|dig|order|negotiate)/gi, 
+      'Organizations can have $1 $2 $3')
+    // Fix "Organizations it [verb]" -> "Organizations can [verb] it"
+    .replace(/Organizations it ([a-z][^.!?]+)/gi, 'Organizations can $1 it')
+    // Fix "Organizations [ProperNoun] to [verb]" -> "Organizations can enable [ProperNoun] to [verb]"
+    .replace(/Organizations ([A-Z][a-z]+) to ([^.!?]+)/gi, 'Organizations can enable $1 to $2')
+    // Fix standalone "Organizations [lowercase]" at start of sentence
+    .replace(/(^|\.\s+)Organizations ([a-z])/gm, (match, prefix, letter) => `${prefix}Organizations can ${letter}`);
+  
+  return result;
 }
 
 /**
