@@ -73,12 +73,25 @@ Topic Description: ${blueprint.description}`,
    - Write in full narrative paragraphs that explain concepts, provide context, and offer insights
    - DO NOT use generic headings like "Why It Matters", "Industry Response", "Future Outlook"
 
-4. **Content Requirements**:
-   - **Definition Section**: Start with ${blueprint.sections[0]} - provide a clear, comprehensive definition (2-3 paragraphs)
-   - **Implementation Depth**: Include specific, actionable guidance in implementation sections
-   - **Trade-offs/Risks**: Include at least one section discussing trade-offs, risks, or considerations
-   - **Use Cases**: Include real-world examples and use cases where relevant
+4. **Content Requirements - CRITICAL FOR AUTHORITY**:
+   - **Definition Section**: Start with ${blueprint.sections[0]} - identify a real business pain or strategic challenge, hook enterprise readers, set authoritative tone (3-4 paragraphs)
+   - **Technical Depth**: Include specific technical details:
+     * Architecture patterns (APIs vs custom models, cloud vs edge, event-driven vs state machine)
+     * System design considerations (data pipelines, inference layers, model hosting, monitoring)
+     * Cost implications and trade-offs (vendor lock-in, latency, scalability)
+     * Model lifecycle and governance (retraining, drift detection, compliance)
+   - **Trade-offs/Risks Section**: Must include deep analysis of:
+     * Technical risks (hallucinations, bias, security vulnerabilities)
+     * Operational risks (governance, compliance, ongoing maintenance)
+     * Strategic trade-offs (cost vs performance, vendor lock-in, scalability)
+   - **Implementation Depth**: Provide specific, actionable guidance with technical specifics:
+     * Which technologies/frameworks and why
+     * Architecture decisions and their implications
+     * Deployment patterns and their trade-offs
+     * Real-world constraints and how to address them
+   - **Use Cases**: Include real-world examples with technical context
    - **Company Examples**: Use the RSS company only as a supporting example (1-2 sentences max), not the main focus
+   - **NO Promotional Language**: Do NOT include phrases like "Learn more about our services" or "Contact us" - this is authority content, not a service page
 
 5. **Evergreen Theme Extraction**: 
    - Extract the underlying evergreen concept from the RSS content
@@ -92,19 +105,21 @@ Topic Description: ${blueprint.description}`,
    - In 2-3 section headings
    - Throughout body paragraphs (natural density ~1-2%)
 
-7. **Content Quality**:
+7. **Content Quality - AUTHORITY LEVEL**:
    - Write in full paragraphs with depth - NO bullet points, NO checklists, NO numbered lists
-   - Each paragraph should be 3-5 sentences that develop an idea with context, examples, and analysis
+   - Each paragraph should be 4-6 sentences that develop an idea with technical context, specific examples, and deep analysis
    - Avoid generic filler phrases like "industry landscape continues to evolve" or "maintain competitive advantage"
    - Avoid generic praise language ("revolutionary", "game-changing", etc.)
-   - Avoid promotional tone
-   - Feel like industry thought leadership, not commentary on news
-   - Include practical insights and strategic depth
-   - Provide actionable value with specific implementation guidance explained in narrative form
-   - Use authoritative, professional tone
+   - Avoid promotional tone - NO service pitches, NO "contact us", NO "learn more about our services"
+   - Sound like technical authority content, not agency blog content
+   - Include specific technical details: architecture patterns, system design, inference layers, model lifecycle, governance frameworks
+   - Provide actionable value with specific implementation guidance, technical trade-offs, and real-world constraints
+   - Discuss "how it actually works at system level" not just "why it's beneficial"
+   - Use authoritative, expert-level tone for CTOs, technical leads, and enterprise decision-makers
    - NO emojis
    - NO mention of the original RSS source or article
    - NO centering content around specific companies
+   - NO promotional endings or CTAs
 
 8. **Tone**: Authoritative, professional, expert-level. Write for founders, CTOs, and product managers seeking strategic insights and implementation guidance.
 
