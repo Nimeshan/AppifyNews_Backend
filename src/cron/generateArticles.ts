@@ -67,21 +67,26 @@ export async function generateArticles(): Promise<void> {
       
       // Strong alignment indicators for our core topics
       const hasStrongAlignment = 
-        // AI software
+        // AI software (including AI agents, AI tools, machine learning)
         (itemContent.includes("ai software") || itemContent.includes("artificial intelligence software") ||
-         itemContent.includes("machine learning software") || itemContent.includes("ai platform")) ||
+         itemContent.includes("machine learning software") || itemContent.includes("ai platform") ||
+         itemContent.includes("ai agent") || itemContent.includes("ai tool") || itemContent.includes("ai system") ||
+         (itemContent.includes("artificial intelligence") && (itemContent.includes("software") || itemContent.includes("development") || itemContent.includes("business")))) ||
         // Digital transformation
         (itemContent.includes("digital transformation") || itemContent.includes("digital strategy") ||
          itemContent.includes("digital innovation") || itemContent.includes("digital adoption")) ||
         // App development
         (itemContent.includes("app development") || itemContent.includes("mobile app") ||
-         itemContent.includes("software development") || itemContent.includes("application development")) ||
+         itemContent.includes("software development") || itemContent.includes("application development") ||
+         itemContent.includes("app developer") || itemContent.includes("mobile development")) ||
         // Workforce automation
         (itemContent.includes("workforce automation") || itemContent.includes("workplace automation") ||
-         itemContent.includes("business automation") || itemContent.includes("process automation")) ||
+         itemContent.includes("business automation") || itemContent.includes("process automation") ||
+         itemContent.includes("automation") && (itemContent.includes("work") || itemContent.includes("business") || itemContent.includes("workplace"))) ||
         // Emerging technology strategy
         (itemContent.includes("emerging technology") || itemContent.includes("tech strategy") ||
-         itemContent.includes("technology adoption") || itemContent.includes("innovation strategy"));
+         itemContent.includes("technology adoption") || itemContent.includes("innovation strategy") ||
+         itemContent.includes("technology strategy"));
       
       // Secondary indicators (weaker but still relevant)
       const hasSecondaryAlignment = 
@@ -99,7 +104,8 @@ export async function generateArticles(): Promise<void> {
       });
       
       // Only proceed if there's STRONG alignment with core topics
-      if (!hasStrongAlignment && !hasRelevantCategory) {
+      // Also allow if secondary alignment + relevant category (for articles like "AI Agent" that are clearly AI-related)
+      if (!hasStrongAlignment && !hasRelevantCategory && !(hasSecondaryAlignment && (itemContent.includes("ai") || itemContent.includes("software") || itemContent.includes("automation") || itemContent.includes("app") || itemContent.includes("digital")))) {
         console.log(`[Pipeline] ⚠️  Skipping article - doesn't align with core topics (AI software, Digital transformation, App development, Workforce automation, Emerging technology strategy): ${item.title}`);
         continue; // Skip this article
       }
