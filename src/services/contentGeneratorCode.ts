@@ -214,22 +214,26 @@ function isValidSentence(sentence: string): boolean {
   
   // Filter out incomplete fragments
   const incompletePatterns = [
-    /^as\s+[^.!?]+\.\s*$/i, // "As internal usage of the technology grows." - any sentence starting with "As" that ends with period (incomplete subordinate clause)
     /^[A-Z][a-z]+\s+(a|an|the)\s+\w+\s*\.$/i, // "AMP a statutory net profit."
     /^[A-Z][a-z]+\s*\.\s*$/i, // "She." or "George."
     /^[A-Z][a-z]+\s+[A-Z][a-z]+\s*\.\s*$/i, // "CEO Alexis."
   ];
   
-  // Additional check: if sentence starts with "As" and is less than 80 chars, it's likely an incomplete subordinate clause
-  // Complete sentences with "As" usually have a main clause after the subordinate clause
+  // Special check for "As" clauses - these are incomplete if they don't have a main clause
   if (/^as\s+/i.test(trimmed)) {
-    // Check if it has a main clause (look for common main clause indicators after the subordinate clause)
-    const hasMainClause = /,\s+[A-Z]/.test(trimmed) || // "As X grows, Y happens."
-                          /\s+(this|these|it|they|organizations|companies|businesses|systems|technologies)\s+/i.test(trimmed) || // Has a subject after "As"
-                          trimmed.length > 100; // Long enough to likely have both clauses
+    // A complete sentence with "As" should have:
+    // 1. A comma followed by a main clause: "As X grows, Y happens."
+    // 2. Or be long enough to contain both clauses (usually > 80 chars)
+    // 3. Or have a subject pronoun/noun after the subordinate clause
     
-    if (!hasMainClause && trimmed.length < 100) {
-      return false; // Incomplete subordinate clause without main clause
+    const hasCommaWithMainClause = /,\s+[A-Z]/.test(trimmed); // "As X grows, Y happens."
+    const hasSubjectAfterAs = /\s+(this|these|it|they|organizations|companies|businesses|systems|technologies|the|a|an)\s+[a-z]+/i.test(trimmed.substring(20)); // Subject after first 20 chars
+    const isLongEnough = trimmed.length > 80; // Long enough to likely have both clauses
+    
+    // If it's a short "As" clause without a main clause, it's incomplete
+    // "As internal usage of the technology grows." = 45 chars, no comma, no subject after = INCOMPLETE
+    if (!hasCommaWithMainClause && !hasSubjectAfterAs && !isLongEnough) {
+      return false; // Incomplete subordinate clause
     }
   }
   
