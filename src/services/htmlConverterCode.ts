@@ -17,6 +17,11 @@ export async function convertToHTML(content: string): Promise<string> {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
+    // H1 headings (# Heading) - skip, these are titles, not content
+    if (line.startsWith("# ") && !line.startsWith("## ")) {
+      continue;
+    }
+
     // H2 headings (## Heading)
     if (line.startsWith("## ") && !line.startsWith("### ")) {
       const heading = line.replace(/^##\s+/, "");
@@ -45,8 +50,8 @@ export async function convertToHTML(content: string): Promise<string> {
     // Regular paragraphs
     if (line.length > 0) {
       // Skip lines that are markdown headings (should have been converted already)
-      if (line.match(/^##+\s+/)) {
-        continue; // Skip markdown headings in paragraph processing
+      if (line.match(/^#+\s+/)) {
+        continue; // Skip markdown headings (H1, H2, H3) in paragraph processing
       }
       
       // Decode HTML entities that might be in the text

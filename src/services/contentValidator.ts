@@ -56,9 +56,10 @@ export function validateArticleContent(
   const duplicateSentences = Array.from(sentenceCounts.entries()).filter(
     ([, count]) => count > 1
   );
-  // Only reject if there are MANY duplicates (more than 20% of sentences are duplicates)
+  // Only reject if there are MANY duplicates (more than 30% of sentences are duplicates)
   // Some duplicates in source content are acceptable - RSS feeds sometimes have repeated content
-  if (duplicateSentences.length > sentences.length * 0.2) {
+  // Increased threshold to 30% to account for inherent repetition in RSS source material
+  if (duplicateSentences.length > sentences.length * 0.3) {
     errors.push(
       `Found ${duplicateSentences.length} duplicate sentence(s) (${Math.round(duplicateSentences.length / sentences.length * 100)}% of content). Content must be original without excessive repetition.`
     );
@@ -89,19 +90,22 @@ export function validateArticleContent(
     );
   }
 
-  // 3. Ensure primary keyword appears 2-4 times only
+  // 3. Ensure primary keyword appears 2-6 times (allow more for multi-word keywords)
   if (primaryKeyword) {
     const keywordLower = primaryKeyword.toLowerCase();
     const contentLower = content.toLowerCase();
     const keywordMatches = (contentLower.match(new RegExp(keywordLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    
+    // For multi-word keywords (2+ words), allow up to 6 occurrences
+    const maxOccurrences = primaryKeyword.split(/\s+/).length >= 2 ? 6 : 4;
 
     if (keywordMatches < 2) {
       errors.push(
-        `Primary keyword "${primaryKeyword}" appears only ${keywordMatches} time(s). Must appear 2-4 times.`
+        `Primary keyword "${primaryKeyword}" appears only ${keywordMatches} time(s). Must appear 2-${maxOccurrences} times.`
       );
-    } else if (keywordMatches > 4) {
+    } else if (keywordMatches > maxOccurrences) {
       errors.push(
-        `Primary keyword "${primaryKeyword}" appears ${keywordMatches} times. Must appear 2-4 times only (keyword stuffing detected).`
+        `Primary keyword "${primaryKeyword}" appears ${keywordMatches} times. Must appear 2-${maxOccurrences} times only (keyword stuffing detected).`
       );
     }
     

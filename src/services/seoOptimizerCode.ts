@@ -168,14 +168,10 @@ function integratePrimaryKeyword(
             'app development': ['App Development', 'Application Development', 'App Development Services']
           };
           
-          const variations = keywordVariations[keywordLower] || [primaryKeyword];
-          const variation = variations[0];
-          
-          // Add variation to heading (only if it doesn't make it too long)
-          if (heading.length + variation.length < 80) {
-            added++;
-            return `${prefix}${heading}: ${variation} Insights`;
-          }
+          // Don't modify headings - keep them clean without adding ": Insights" suffix
+          // This was causing headings like "What Is X?: Y Insights" which is grammatically incorrect
+          // Just return the original heading unchanged
+          return match;
         }
       }
       return match;
@@ -531,6 +527,8 @@ export async function optimizeForSEO(
   // Priority: Check title first (most descriptive), then content
   if (titleLower.includes("ai agent") || contentLower.includes("ai agent")) {
     primaryKeyword = "AI agent";
+  } else if (titleLower.includes("startup accelerator") || titleLower.includes("accelerator") || contentLower.includes("startup accelerator")) {
+    primaryKeyword = "startup accelerator";
   } else if (titleLower.includes("ai software") || contentLower.includes("ai software")) {
     primaryKeyword = "AI software";
   } else if (titleLower.includes("openai") || (contentLower.includes("openai") && contentLower.includes("ai"))) {

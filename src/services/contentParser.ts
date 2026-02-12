@@ -46,6 +46,12 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
       continue;
     }
 
+    // Markdown: # → H1 (skip, don't include in content blocks)
+    if (trimmed.match(/^#\s+/)) {
+      // H1 is the title, skip it - don't add to blocks
+      continue;
+    }
+
     // Markdown: ## → heading, ### → subheading (check ### first)
     if (trimmed.match(/^###\s+/)) {
       const text = trimmed.replace(/^###\s+/, "").trim();
@@ -94,8 +100,13 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
       .replace(/&nbsp;/gi, " ")
       .trim();
     
-    // Remove markdown headings that might have slipped through
-    text = text.replace(/^##+\s+[^\n]+/gm, "").trim();
+    // Remove markdown headings that might have slipped through (including H1)
+    text = text.replace(/^#+\s+[^\n]+/gm, "").trim();
+    
+    // Skip if text looks like an H1 pattern (e.g., "Startup accelerator: A Strategic Guide")
+    if (text.match(/^[A-Z][^.!?]{0,60}:\s*A Strategic Guide$/i)) {
+      continue;
+    }
     
     // Remove UI elements and source article metadata
     text = text.replace(/^(Save Story|Share|Subscribe|Sign up|Photograph:|Photo-Illustration:)[^\n]*/gim, "").trim();
@@ -163,17 +174,9 @@ export function generateSlug(title: string): string {
  */
 export function generateExcerpt(blocks: ContentBlock[], metaDescription?: string): string {
   // Simple approach: Extract from first 1-2 paragraphs only
-  const paragraphs = blocks.filter((b) => b.type === "paragraph").slice(0, 2);
-  if (paragraphs.length === 0) {
-    // Fallback to meta description if no paragraphs
-    if (metaDescription) {
-      return metaDescription.slice(0, 250).trim();
-    }
-    return "";
-  }
-
-  // Get text from first paragraph(s), clean it up
-  let excerpt = paragraphs
+  // Filter out any paragraphs that look like headings (start with # or are too short)
+  const paragraphs = blocks
+    .filter((b) => b.type === "paragraph")
     .map((p) => {
       let text = p.text || "";
       // Remove HTML tags (keep text only)
@@ -191,9 +194,26 @@ export function generateExcerpt(blocks: ContentBlock[], metaDescription?: string
       text = text.replace(/\s+/g, " ").trim();
       return text;
     })
-    .filter((t) => t.length > 20) // Only keep substantial text
-    .join(" ")
-    .trim();
+    .filter((t) => {
+      // Filter out headings that slipped through (start with # or look like headings)
+      if (t.length < 20) return false;
+      if (t.match(/^#+\s+/)) return false; // Markdown headings
+      if (t.match(/^[A-Z][^.!?]{0,50}:\s*A Strategic Guide/i)) return false; // H1 patterns
+      if (t.match(/^[A-Z][^.!?]{0,50}:\s*[A-Z]/)) return false; // Title-like patterns
+      return true;
+    })
+    .slice(0, 2); // Take first 2 valid paragraphs
+    
+  if (paragraphs.length === 0) {
+    // Fallback to meta description if no paragraphs
+    if (metaDescription) {
+      return metaDescription.slice(0, 250).trim();
+    }
+    return "";
+  }
+
+  // Join paragraphs
+  let excerpt = paragraphs.join(" ").trim();
 
   // Limit to ~200-250 characters (2-3 lines)
   if (excerpt.length > 250) {

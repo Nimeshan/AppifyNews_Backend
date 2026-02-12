@@ -188,6 +188,259 @@ function extractKeyConcepts(content: string, title: string): string[] {
 }
 
 /**
+ * Filter out time-based openings and news-style starts
+ */
+function filterTimeBasedOpenings(paragraphs: string[]): string[] {
+  const timeBasedPatterns = [
+    /^on (tuesday|wednesday|thursday|friday|saturday|sunday|monday)/i,
+    /^recently/i,
+    /^this week/i,
+    /^this month/i,
+    /^this year/i,
+    /^yesterday/i,
+    /^today/i,
+    /^last week/i,
+    /^last month/i,
+    /^[A-Z][a-z]+ announced/i,
+    /^[A-Z][a-z]+ said/i,
+    /^[A-Z][a-z]+ revealed/i,
+    /^[A-Z][a-z]+ reported/i,
+  ];
+  
+  return paragraphs.filter(p => {
+    const firstSentence = p.trim().split(/[.!?]/)[0];
+    return !timeBasedPatterns.some(pattern => pattern.test(firstSentence));
+  });
+}
+
+/**
+ * Identify the core concept/trend from content (not the company)
+ * Priority: Check title first, then content
+ */
+function extractCoreConcept(content: string, title: string): string {
+  const lowerContent = content.toLowerCase();
+  const lowerTitle = title.toLowerCase();
+  
+  // Check title first (most descriptive)
+  if (lowerTitle.includes("startup accelerator") || lowerTitle.includes("accelerator")) {
+    return "startup accelerator";
+  }
+  if (lowerTitle.includes("ai agent")) {
+    return "AI agent";
+  }
+  if (lowerTitle.includes("ai software")) {
+    return "AI software";
+  }
+  if (lowerTitle.includes("digital transformation")) {
+    return "digital transformation";
+  }
+  if (lowerTitle.includes("workforce automation")) {
+    return "workforce automation";
+  }
+  if (lowerTitle.includes("app development")) {
+    return "app development";
+  }
+  
+  // Then check content
+  if (lowerContent.includes("startup accelerator") || lowerContent.includes("accelerator program")) {
+    return "startup accelerator";
+  }
+  if (lowerContent.includes("ai agent")) {
+    return "AI agent";
+  }
+  if (lowerContent.includes("ai software") || lowerContent.includes("artificial intelligence software")) {
+    return "AI software";
+  }
+  if (lowerContent.includes("digital transformation")) {
+    return "digital transformation";
+  }
+  if (lowerContent.includes("workforce automation")) {
+    return "workforce automation";
+  }
+  if (lowerContent.includes("app development")) {
+    return "app development";
+  }
+  
+  // Default fallback
+  return "technology innovation";
+}
+
+/**
+ * Check if paragraph is generic filler
+ */
+function isGenericFiller(paragraph: string): boolean {
+  const genericPatterns = [
+    /industry landscape continues to evolve/i,
+    /presenting new opportunities and challenges/i,
+    /understanding the strategic implications/i,
+    /essential for businesses looking to maintain competitive advantage/i,
+    /industry leaders recognize the importance/i,
+    /staying informed about emerging trends/i,
+    /adapting their strategies accordingly/i,
+    /significant implications for the technology industry/i,
+    /how businesses approach digital transformation/i,
+    /staying ahead in an increasingly competitive/i,
+    /comprehensive analysis of what this means/i,
+    /significant shift in the technology landscape/i,
+    /far-reaching implications for businesses/i,
+    /reshaping how organizations operate/i,
+    /compete in the digital marketplace/i,
+  ];
+  
+  const lowerPara = paragraph.toLowerCase();
+  return genericPatterns.some(pattern => pattern.test(lowerPara));
+}
+
+/**
+ * Count company mentions in content
+ */
+function countCompanyMentions(content: string): number {
+  // Common company names that might appear
+  const companyPatterns = [
+    /\b(meta|microsoft|google|anthropic|openai|mistral|aws|amd|qualcomm|ovh|sequoia|general catalyst|lightspeed|station f|y combinator)\b/gi,
+  ];
+  
+  let count = 0;
+  companyPatterns.forEach(pattern => {
+    const matches = content.match(pattern);
+    if (matches) count += matches.length;
+  });
+  
+  return count;
+}
+
+/**
+ * Get the correct article (a/an) for a concept
+ */
+function getArticle(concept: string): string {
+  const firstWord = concept.trim().split(/\s+/)[0].toLowerCase();
+  const firstChar = firstWord.charAt(0);
+  
+  // Words starting with vowels (a, e, i, o, u) use "an"
+  // Also "h" words that start with a vowel sound (e.g., "hour", "honor")
+  if (/^[aeiou]/.test(firstChar)) {
+    return "an";
+  }
+  
+  // Special case: "h" words that start with vowel sound
+  const vowelSoundH = ["hour", "honor", "honest", "heir"];
+  if (vowelSoundH.includes(firstWord)) {
+    return "an";
+  }
+  
+  return "a";
+}
+
+/**
+ * Generate topic-specific, SEO-optimized headings based on the core concept
+ * Headings must be specific and match search queries, not generic
+ */
+function generateTopicSpecificHeadings(coreConcept: string, title: string, content: string): {
+  section2: string; // Market/Strategic Context
+  section3: string; // Operational Mechanics
+  section4: string; // Benefits & Trade-Offs
+  section5: string; // Business Response
+  section6: string; // Industry Impact (optional)
+} {
+  const conceptLower = coreConcept.toLowerCase();
+  const capitalized = coreConcept.charAt(0).toUpperCase() + coreConcept.slice(1);
+  const contentLower = (title + " " + content).toLowerCase();
+  
+  // Section 2: Market/Strategic Context (replaces "Why It Matters")
+  let section2: string;
+  if (conceptLower.includes("startup accelerator") || conceptLower.includes("accelerator")) {
+    section2 = "Why AI Labs Invest in Startup Accelerators";
+  } else if (conceptLower.includes("ai agent") || conceptLower.includes("autonomous")) {
+    section2 = "Why Autonomous AI Agents Are Gaining Traction";
+  } else if (conceptLower.includes("ai software")) {
+    section2 = "Market Drivers Behind AI Software Adoption";
+  } else if (conceptLower.includes("digital transformation")) {
+    section2 = "Strategic Incentives for Digital Transformation";
+  } else if (conceptLower.includes("workforce automation")) {
+    section2 = "Why Organizations Are Adopting Workforce Automation";
+  } else if (conceptLower.includes("app development")) {
+    section2 = "Market Forces Driving Modern App Development";
+  } else {
+    // Generic fallback - but still topic-specific
+    section2 = `Strategic Context for ${capitalized}`;
+  }
+  
+  // Section 3: Operational Mechanics (replaces "How It Works")
+  let section3: string;
+  if (conceptLower.includes("startup accelerator") || conceptLower.includes("accelerator")) {
+    section3 = "How AI Accelerator Programs Structure Funding and Credits";
+  } else if (conceptLower.includes("ai agent") || conceptLower.includes("autonomous")) {
+    section3 = "How AI Agents Access Local Systems and APIs";
+  } else if (conceptLower.includes("ai software")) {
+    section3 = "How AI Software Platforms Operate and Integrate";
+  } else if (conceptLower.includes("digital transformation")) {
+    section3 = "How Digital Transformation Initiatives Are Executed";
+  } else if (conceptLower.includes("workforce automation")) {
+    section3 = "How Workforce Automation Systems Function";
+  } else if (conceptLower.includes("app development")) {
+    section3 = "How Modern App Development Processes Work";
+  } else {
+    section3 = `How ${capitalized} Operates Strategically`;
+  }
+  
+  // Section 4: Benefits & Trade-Offs (make topic-specific)
+  let section4: string;
+  if (conceptLower.includes("startup accelerator") || conceptLower.includes("accelerator")) {
+    section4 = "Benefits and Risks of AI Startup Accelerators";
+  } else if (conceptLower.includes("ai agent") || conceptLower.includes("autonomous")) {
+    section4 = "Security Trade-Offs of Autonomous AI Systems";
+  } else if (conceptLower.includes("ai software")) {
+    section4 = "Benefits and Limitations of AI Software Solutions";
+  } else if (conceptLower.includes("digital transformation")) {
+    section4 = "Benefits and Challenges of Digital Transformation";
+  } else if (conceptLower.includes("workforce automation")) {
+    section4 = "Benefits and Risks of Workforce Automation";
+  } else if (conceptLower.includes("app development")) {
+    section4 = "Benefits and Trade-Offs in App Development";
+  } else {
+    section4 = `Benefits and Trade-Offs of ${capitalized}`;
+  }
+  
+  // Section 5: Business Response (replaces "Implementation and Evaluation")
+  let section5: string;
+  if (conceptLower.includes("startup accelerator") || conceptLower.includes("accelerator")) {
+    section5 = "How Businesses Should Respond to AI Ecosystem Consolidation";
+  } else if (conceptLower.includes("ai agent") || conceptLower.includes("autonomous")) {
+    section5 = "Evaluating AI Agent Deployment in Enterprise Environments";
+  } else if (conceptLower.includes("ai software")) {
+    section5 = "How Businesses Should Evaluate AI Software Solutions";
+  } else if (conceptLower.includes("digital transformation")) {
+    section5 = "How Organizations Should Approach Digital Transformation";
+  } else if (conceptLower.includes("workforce automation")) {
+    section5 = "Decision Criteria for Workforce Automation Implementation";
+  } else if (conceptLower.includes("app development")) {
+    section5 = "How Businesses Should Approach App Development Projects";
+  } else {
+    section5 = `How Businesses Should Evaluate ${capitalized}`;
+  }
+  
+  // Section 6: Industry Impact (make topic-specific)
+  let section6: string;
+  if (conceptLower.includes("startup accelerator") || conceptLower.includes("accelerator")) {
+    section6 = "Impact of AI Accelerators on Startup Ecosystems";
+  } else if (conceptLower.includes("ai agent") || conceptLower.includes("autonomous")) {
+    section6 = "Industry Impact of Autonomous AI Agent Adoption";
+  } else if (conceptLower.includes("ai software")) {
+    section6 = "Industry Impact of AI Software Proliferation";
+  } else if (conceptLower.includes("digital transformation")) {
+    section6 = "Industry Impact of Digital Transformation Trends";
+  } else if (conceptLower.includes("workforce automation")) {
+    section6 = "Industry Impact of Workforce Automation";
+  } else if (conceptLower.includes("app development")) {
+    section6 = "Industry Impact of Modern App Development";
+  } else {
+    section6 = `Industry Impact of ${capitalized}`;
+  }
+  
+  return { section2, section3, section4, section5, section6 };
+}
+
+/**
  * Remove time-sensitive references to make content evergreen
  * Preserves grammar and readability while making content timeless
  */
@@ -402,7 +655,7 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     // First pass: filter paragraphs
     let paragraphs = cleanContent.split(/\n\n+/).filter((p: string) => {
       const trimmed = p.trim();
-      // Filter out very short paragraphs, markdown headings, and UI elements
+      // Filter out very short paragraphs, markdown headings, UI elements, and generic filler
       // Require at least 100 characters for substantial paragraphs (2-4 lines)
       const lowerTrimmed = trimmed.toLowerCase();
       return trimmed.length > 100 
@@ -411,21 +664,30 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
         && !lowerTrimmed.includes("comment loader")
         && !lowerTrimmed.includes("save this story")
         && !lowerTrimmed.includes("getty images")
-        && !lowerTrimmed.includes("wired staff");
+        && !lowerTrimmed.includes("wired staff")
+        && !isGenericFiller(trimmed); // Remove generic filler
     });
     
-    // Remove duplicate paragraphs from source content
+    // Filter out time-based openings (Rule 1)
+    paragraphs = filterTimeBasedOpenings(paragraphs);
+    
+    // Extract core concept for primary keyword (Rule 3)
+    const coreConcept = extractCoreConcept(sourceContent, item.title);
+    
+    // Remove duplicate paragraphs and sentences from source content
+    // Use global sentence tracking to prevent duplicates across entire article
+    const globalSeenSentences = new Set<string>();
     const seenParagraphs = new Set<string>();
+    
     paragraphs = paragraphs.map((p: string) => {
-      // Also remove duplicate sentences within each paragraph
+      // Remove duplicate sentences within each paragraph AND across all paragraphs
       const sentences = p.split(/[.!?]+\s+/).filter(s => s.trim().length > 20);
-      const seenSentences = new Set<string>();
       const uniqueSentences = sentences.filter((s: string) => {
-        const normalized = s.trim().toLowerCase().replace(/\s+/g, " ");
-        if (seenSentences.has(normalized)) {
-          return false; // Skip duplicate sentence
+        const normalized = s.trim().toLowerCase().replace(/\s+/g, " ").substring(0, 150); // First 150 chars as fingerprint
+        if (globalSeenSentences.has(normalized)) {
+          return false; // Skip duplicate sentence (already seen elsewhere)
         }
-        seenSentences.add(normalized);
+        globalSeenSentences.add(normalized);
         return true;
       });
       return uniqueSentences.join(". ") + (p.trim().endsWith(".") ? "" : ".");
@@ -451,174 +713,225 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     const futureParagraphs = paragraphs.slice(27, Math.min(30, totalParagraphs)); // 3 paragraphs
     const conclusionParagraphs = paragraphs.slice(30, Math.min(33, totalParagraphs)); // 3 paragraphs
     
-    // Use RSS title for the main heading, or create a descriptive one
-    const mainHeading = item.title || "Latest Technology Developments";
+    // Create H1 with primary keyword - written like a search query, not a news headline
+    // Format: "What Is [Primary Keyword]?" or "How Does [Primary Keyword] Work?"
+    const articleWord = getArticle(coreConcept);
+    const capitalizedConcept = coreConcept.charAt(0).toUpperCase() + coreConcept.slice(1);
+    const h1Title = `What Is ${articleWord} ${capitalizedConcept}?`;
     
     // Analyze content to generate dynamic headings based on actual article topic
     const contentAnalysis = analyzeContentForHeadings(sourceContent, item.title);
     
-    // Build comprehensive content sections for SEO dominance (3000-4000 words)
+    // Build content sections following the rules
     // Track all paragraphs added to prevent duplicates across sections
     const addedParagraphFingerprints = new Set<string>();
     const getParagraphFingerprint = (p: string) => p.trim().toLowerCase().replace(/\s+/g, " ").substring(0, 200);
     
+    // Track company mentions to limit to 15% (Rule 3)
+    let totalWords = 0;
+    let companyMentionWords = 0;
+    
     const blogSections: string[] = [
-      `## ${mainHeading}`,
+      `# ${h1Title}`,
     ];
     
-    // Introduction section (300-500 words)
-    blogSections.push("", "## Introduction");
-    if (introParagraphs.length > 0) {
-      introParagraphs.forEach(p => {
-        const fingerprint = getParagraphFingerprint(p);
-        if (!addedParagraphFingerprints.has(fingerprint)) {
-          blogSections.push(p);
-          addedParagraphFingerprints.add(fingerprint);
-        }
-      });
-    } else {
-      const snippet = item.contentSnippet || item.content || "";
-      if (snippet.length > 50) {
-        blogSections.push(snippet);
-        blogSections.push("This development has significant implications for the technology industry and how businesses approach digital transformation.");
-        blogSections.push("Understanding these changes is crucial for staying ahead in an increasingly competitive technological environment.");
-      } else {
-        blogSections.push(`The recent developments in ${mainHeading.toLowerCase()} represent a significant shift in the technology landscape.`);
-        blogSections.push("This article provides a comprehensive analysis of what this means for businesses, developers, and the industry as a whole.");
-      }
-    }
-    
-    // Main section - avoid generic "What is" phrasing
-    blogSections.push("", `## ${contentAnalysis.mainSectionHeading}`);
-    if (whatIsParagraphs.length > 0) {
-      whatIsParagraphs.forEach(p => {
-        const fingerprint = getParagraphFingerprint(p);
-        if (!addedParagraphFingerprints.has(fingerprint)) {
-          blogSections.push(p);
-          addedParagraphFingerprints.add(fingerprint);
-        }
-      });
-    } else {
-      blogSections.push(contentAnalysis.mainSectionContent[0]);
-      blogSections.push("This development represents a significant advancement in the technology sector, with far-reaching implications for businesses and consumers alike.");
-      blogSections.push("The integration of new technologies and methodologies is reshaping how organizations operate and compete in the digital marketplace.");
-    }
-    
-    // Second main section - avoid generic phrasing and prevent duplicates
-    if (contentAnalysis.secondSectionHeading) {
-      blogSections.push("", `## ${contentAnalysis.secondSectionHeading}`);
-      if (whyMattersParagraphs.length > 0) {
-        whyMattersParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
+    // Rule 2: First paragraph must be a clean definition (2-3 sentences)
+    // No dates, no "announced", no company names
+    function createCleanDefinition(concept: string, sourceParagraphs: string[]): string {
+      const conceptLower = concept.toLowerCase();
+      const capitalized = concept.charAt(0).toUpperCase() + concept.slice(1);
+      
+      // Try to find a generic definition paragraph from source
+      for (const p of sourceParagraphs.slice(0, 10)) {
+        const lowerP = p.toLowerCase();
+        // Look for definition patterns without company names or dates
+        if ((lowerP.includes("is a") || lowerP.includes("refers to") || lowerP.includes("is an") || 
+             lowerP.includes("represents") || lowerP.includes("enables") || lowerP.includes("is effectively")) &&
+            !lowerP.match(/\b(announced|said|reported|revealed|on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|this week|recently|yesterday|today)\b/i) &&
+            !countCompanyMentions(p)) {
+          // Clean it up - remove any company names or dates that might have slipped through
+          let clean = p
+            .replace(/\b(on|this|last|next)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|week|month|year)\b/gi, "")
+            .replace(/\b(announced|said|reported|revealed)\b/gi, "")
+            .trim();
+          
+          // Ensure it mentions the concept
+          if (clean.toLowerCase().includes(conceptLower) && clean.split(/[.!?]/).length >= 2) {
+            return clean;
           }
-        });
-      } else {
-        blogSections.push(contentAnalysis.mainSectionContent[1]);
-        blogSections.push("Organizations that adapt quickly to these changes are better positioned to leverage new opportunities and maintain their competitive edge.");
-        blogSections.push("The evolving technology landscape presents both challenges and opportunities for businesses seeking to innovate.");
+        }
       }
       
-      // Only add howWorksParagraphs if they're different from whyMattersParagraphs
-      if (howWorksParagraphs.length > 0) {
-        howWorksParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
-          }
-        });
+      // Fallback: Create a generic definition
+      const definitions: Record<string, string> = {
+        "startup accelerator": `${capitalized} is a program designed to help early-stage companies grow rapidly through mentorship, funding, and networking opportunities. These programs provide structured support to help startups develop their products, reach customers, and scale their operations.`,
+        "ai agent": `An ${capitalized} is an autonomous software system that can perform tasks, make decisions, and interact with users or other systems using artificial intelligence. These agents can understand natural language, process information, and execute actions based on their programming and learning capabilities.`,
+        "ai software": `${capitalized} refers to applications and platforms that use artificial intelligence to automate tasks, analyze data, and provide intelligent insights. This technology enables businesses to improve efficiency, make data-driven decisions, and enhance user experiences through machine learning and automation.`,
+        "digital transformation": `${capitalized} is the process of integrating digital technology into all areas of a business to fundamentally change how it operates and delivers value to customers. This involves rethinking business models, processes, and customer engagement strategies using modern technology solutions.`,
+        "workforce automation": `${capitalized} involves using technology to automate repetitive tasks and processes traditionally performed by human workers. This approach helps organizations improve efficiency, reduce errors, and allow employees to focus on more strategic and creative work.`,
+        "app development": `${capitalized} is the process of creating software applications for mobile devices, web browsers, or desktop platforms. This involves designing user interfaces, writing code, testing functionality, and deploying applications to make them available to users.`,
+      };
+      
+      return definitions[conceptLower] || `${capitalized} is a technology or business approach that helps organizations achieve their goals more effectively. This concept involves strategic implementation and careful planning to deliver value and improve outcomes.`;
+    }
+    
+    const firstParagraph = createCleanDefinition(coreConcept, paragraphs);
+    blogSections.push("", firstParagraph);
+    addedParagraphFingerprints.add(getParagraphFingerprint(firstParagraph));
+    totalWords += firstParagraph.split(/\s+/).length;
+    
+    // Build 5-7 H2 sections (Rule 5)
+    // Section 1: What is [Core Concept]?
+    // Rule 3: First 2 paragraphs must be generic explanation; company/event examples only AFTER and clearly labeled
+    blogSections.push("", `## What Is ${articleWord} ${capitalizedConcept}?`);
+    
+    // Find generic explanation paragraphs (no company names, no dates, no "announced")
+    let paraIndex = 0;
+    const genericParagraphs: string[] = [];
+    const exampleParagraphs: string[] = [];
+    
+    for (let i = 0; i < paragraphs.length; i++) {
+      const p = paragraphs[i];
+      if (isGenericFiller(p)) continue;
+      
+      const fingerprint = getParagraphFingerprint(p);
+      if (addedParagraphFingerprints.has(fingerprint)) continue;
+      
+      const lowerP = p.toLowerCase();
+      const hasCompany = countCompanyMentions(p) > 0;
+      const hasTimeRef = /\b(announced|said|reported|revealed|on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|this week|recently|yesterday|today|january|february|march|april|may|june|july|august|september|october|november|december)\b/i.test(p);
+      
+      if (hasCompany || hasTimeRef) {
+        exampleParagraphs.push(p);
+      } else if (genericParagraphs.length < 2) {
+        genericParagraphs.push(p);
+        addedParagraphFingerprints.add(fingerprint);
       }
     }
     
-    // Best Practices section - only if we have content (check for duplicates)
-    if (bestPracticesParagraphs.length > 0 || caseStudiesParagraphs.length > 0) {
-      blogSections.push("", "## Implementation Strategies");
-      if (bestPracticesParagraphs.length > 0) {
-        bestPracticesParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
-          }
-        });
-      }
-      if (caseStudiesParagraphs.length > 0) {
-        caseStudiesParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
-          }
-        });
-      }
+    // Add first 2 generic paragraphs
+    for (const p of genericParagraphs.slice(0, 2)) {
+      blogSections.push(p);
+      totalWords += p.split(/\s+/).length;
+      paraIndex++;
     }
     
-    // Common Challenges section - only if we have content (check for duplicates)
-    if (challengesParagraphs.length > 0) {
-      blogSections.push("", "## Key Considerations");
-      challengesParagraphs.forEach(p => {
+    // Add example paragraphs after, clearly labeled with plain text
+    if (exampleParagraphs.length > 0) {
+      blogSections.push("", "Example:");
+      for (const p of exampleParagraphs.slice(0, 2)) {
         const fingerprint = getParagraphFingerprint(p);
         if (!addedParagraphFingerprints.has(fingerprint)) {
           blogSections.push(p);
           addedParagraphFingerprints.add(fingerprint);
+          totalWords += p.split(/\s+/).length;
+          companyMentionWords += (countCompanyMentions(p) * 10);
+          paraIndex++;
         }
-      });
+      }
     }
     
-    // Future section - only if we have content (check for duplicates)
-    if (futureParagraphs.length > 0) {
-      blogSections.push("", `## Industry Outlook`);
-      futureParagraphs.forEach(p => {
+    // Generate topic-specific headings (SEO-optimized, not generic)
+    const headings = generateTopicSpecificHeadings(coreConcept, item.title, sourceContent);
+    
+    // Section 2: Market/Strategic Context (topic-specific, not "Why It Matters")
+    blogSections.push("", `## ${headings.section2}`);
+    const whyCount = Math.min(2, paragraphs.length - paraIndex);
+    for (let i = 0; i < whyCount && paraIndex < paragraphs.length; i++) {
+      const p = paragraphs[paraIndex++];
+      if (isGenericFiller(p)) continue;
+      const fingerprint = getParagraphFingerprint(p);
+      if (!addedParagraphFingerprints.has(fingerprint)) {
+        blogSections.push(p);
+        addedParagraphFingerprints.add(fingerprint);
+        totalWords += p.split(/\s+/).length;
+        companyMentionWords += (countCompanyMentions(p) * 10);
+      }
+    }
+    
+    // Section 3: Operational Mechanics (topic-specific, not "How It Works")
+    blogSections.push("", `## ${headings.section3}`);
+    const howCount = Math.min(3, paragraphs.length - paraIndex);
+    for (let i = 0; i < howCount && paraIndex < paragraphs.length; i++) {
+      const p = paragraphs[paraIndex++];
+      if (isGenericFiller(p)) continue;
+      const fingerprint = getParagraphFingerprint(p);
+      if (!addedParagraphFingerprints.has(fingerprint)) {
+        blogSections.push(p);
+        addedParagraphFingerprints.add(fingerprint);
+        totalWords += p.split(/\s+/).length;
+        companyMentionWords += (countCompanyMentions(p) * 10);
+      }
+    }
+    
+    // Section 4: Benefits & Trade-Offs (topic-specific)
+    blogSections.push("", `## ${headings.section4}`);
+    const risksCount = Math.min(2, paragraphs.length - paraIndex);
+    for (let i = 0; i < risksCount && paraIndex < paragraphs.length; i++) {
+      const p = paragraphs[paraIndex++];
+      if (isGenericFiller(p)) continue;
+      const fingerprint = getParagraphFingerprint(p);
+      if (!addedParagraphFingerprints.has(fingerprint)) {
+        blogSections.push(p);
+        addedParagraphFingerprints.add(fingerprint);
+        totalWords += p.split(/\s+/).length;
+        companyMentionWords += (countCompanyMentions(p) * 10);
+      }
+    }
+    
+    // Section 5: Business Response (topic-specific, not "Implementation and Evaluation")
+    blogSections.push("", `## ${headings.section5}`);
+    const implCount = Math.min(3, paragraphs.length - paraIndex);
+    for (let i = 0; i < implCount && paraIndex < paragraphs.length; i++) {
+      const p = paragraphs[paraIndex++];
+      if (isGenericFiller(p)) continue;
+      const fingerprint = getParagraphFingerprint(p);
+      if (!addedParagraphFingerprints.has(fingerprint)) {
+        blogSections.push(p);
+        addedParagraphFingerprints.add(fingerprint);
+        totalWords += p.split(/\s+/).length;
+        companyMentionWords += (countCompanyMentions(p) * 10);
+      }
+    }
+    
+    // Section 6: Industry Impact (topic-specific, optional if we have content)
+    if (paraIndex < paragraphs.length) {
+      blogSections.push("", `## ${headings.section6}`);
+      const impactCount = Math.min(2, paragraphs.length - paraIndex);
+      for (let i = 0; i < impactCount && paraIndex < paragraphs.length; i++) {
+        const p = paragraphs[paraIndex++];
+        if (isGenericFiller(p)) continue;
         const fingerprint = getParagraphFingerprint(p);
         if (!addedParagraphFingerprints.has(fingerprint)) {
           blogSections.push(p);
           addedParagraphFingerprints.add(fingerprint);
+          totalWords += p.split(/\s+/).length;
+          companyMentionWords += (countCompanyMentions(p) * 10);
         }
-      });
-    }
-    
-    // App Development implications (only if relevant and we have actual content)
-    if (contentAnalysis.includeAppDevSection) {
-      // Use remaining paragraphs for app dev section instead of empty appDevContent
-      const appDevParagraphs = paragraphs.slice(33, Math.min(38, paragraphs.length));
-      if (appDevParagraphs.length > 0) {
-        blogSections.push("", `## ${contentAnalysis.appDevHeading}`);
-        appDevParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
-          }
-        });
       }
     }
     
-    // Conclusion section - use actual content, avoid generic phrasing (check for duplicates)
-    if (conclusionParagraphs.length > 0) {
-      blogSections.push("", "## Summary");
-      conclusionParagraphs.forEach(p => {
+    // Section 7: Future Outlook (optional, if we have content)
+    if (paraIndex < paragraphs.length) {
+      blogSections.push("", "## Future Outlook");
+      const futureCount = Math.min(2, paragraphs.length - paraIndex);
+      for (let i = 0; i < futureCount && paraIndex < paragraphs.length; i++) {
+        const p = paragraphs[paraIndex++];
+        if (isGenericFiller(p)) continue;
         const fingerprint = getParagraphFingerprint(p);
         if (!addedParagraphFingerprints.has(fingerprint)) {
           blogSections.push(p);
           addedParagraphFingerprints.add(fingerprint);
+          totalWords += p.split(/\s+/).length;
+          companyMentionWords += (countCompanyMentions(p) * 10);
         }
-      });
-    } else if (paragraphs.length > 0) {
-      // Use remaining paragraphs instead of generic conclusion
-      const remainingParagraphs = paragraphs.slice(38, Math.min(42, paragraphs.length));
-      if (remainingParagraphs.length > 0) {
-        blogSections.push("", "## Summary");
-        remainingParagraphs.forEach(p => {
-          const fingerprint = getParagraphFingerprint(p);
-          if (!addedParagraphFingerprints.has(fingerprint)) {
-            blogSections.push(p);
-            addedParagraphFingerprints.add(fingerprint);
-          }
-        });
       }
+    }
+    
+    // Check company mention limit (Rule 3 - max 15%)
+    const companyPercentage = totalWords > 0 ? (companyMentionWords / totalWords) * 100 : 0;
+    if (companyPercentage > 15) {
+      console.warn(`[Code] Warning: Company mentions are ${companyPercentage.toFixed(1)}% of content (target: <15%). Consider reducing company-specific content.`);
     }
 
     let blogContent = blogSections.join("\n\n");
