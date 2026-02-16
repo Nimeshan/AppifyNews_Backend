@@ -64,6 +64,8 @@ export async function generateImage(title: string, topic: string): Promise<strin
   try {
     console.log(`[Grok] Calling API with model: grok-2-image`);
     console.log(`[Grok] Prompt: ${prompt.substring(0, 100)}...`);
+    console.log(`[Grok] Base URL: https://api.x.ai/v1`);
+    console.log(`[Grok] Endpoint: /images/generations`);
     
     const response = await getXAI().images.generate({
       model: "grok-2-image",
@@ -72,9 +74,24 @@ export async function generateImage(title: string, topic: string): Promise<strin
       // Note: Grok-2-image doesn't support size parameter - it generates at a fixed size
     });
 
-    console.log(`[Grok] API response received:`, JSON.stringify(response, null, 2).substring(0, 500));
+    console.log(`[Grok] API response received:`, JSON.stringify(response, null, 2));
 
-    const imageUrl = response.data?.[0]?.url;
+    // Handle response structure - based on n8n example, response is: { data: [{ url: "...", revised_prompt: "" }] }
+    // The OpenAI SDK returns: { data: [{ url: string, revised_prompt?: string }] }
+    let imageUrl: string | undefined;
+    
+    const responseAny = response as any;
+    if (responseAny?.data) {
+      const data = responseAny.data;
+      if (Array.isArray(data) && data.length > 0 && data[0]?.url) {
+        imageUrl = data[0].url;
+      } else if (data?.url) {
+        imageUrl = data.url;
+      }
+    } else if (Array.isArray(responseAny) && responseAny[0]?.data?.[0]?.url) {
+      // Handle array response structure: [{ data: [{ url: "...", revised_prompt: "" }] }]
+      imageUrl = responseAny[0].data[0].url;
+    }
     if (!imageUrl) {
       console.error(`[Grok] No image URL in response. Full response:`, JSON.stringify(response, null, 2));
       throw new Error("Grok returned no image URL in response");
