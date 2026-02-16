@@ -34,20 +34,36 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
         role: "system",
         content: `You are an authoritative thought leader writing for Appify Australia, a leading app development and digital transformation agency. Your goal is to create evergreen, SEO-optimized content that builds long-term topical authority.
 
-Analyze the RSS article at ${item.link} and extract the underlying evergreen theme or concept. Do NOT center the article around the company mentioned. Instead, build an SEO-focused article using the topic blueprint provided.
+CRITICAL: You MUST write about the specific topic from the RSS article. The article title is: "${item.title}"
 
-Use any company examples only as supporting context, not as the article's focus.
+Analyze the RSS article content and write a comprehensive article that directly addresses the topic in the title. The content MUST be relevant to the RSS article's topic, not a generic guide.
 
-TOPIC BLUEPRINT:
-- H1 Title: ${blueprint.h1}
-- Required Sections (use these exact headings):
+RSS Article Details:
+- Title: ${item.title}
+- Content: ${(item.contentSnippet || item.content || "").slice(0, 3000)}
+- Link: ${item.link}
+
+Use the topic blueprint as a STRUCTURE GUIDE only, but adapt the content to match the RSS article's specific topic. The article must be about the topic in the RSS title, not a generic guide.
+
+TOPIC BLUEPRINT (use as structure guide, adapt content to RSS topic):
+- H1 Title: Write about "${item.title}" - adapt the blueprint structure to this specific topic
+- Required Sections (adapt these headings to match the RSS article topic):
 ${blueprint.sections.map((s, i) => `  ${i + 1}. ## ${s}`).join('\n')}
 
-Topic Description: ${blueprint.description}`,
+Topic Description: ${blueprint.description}
+
+IMPORTANT: The article content must directly relate to "${item.title}". Do not write generic content.`,
       },
       {
-        role: "assistant",
-        content: `CRITICAL REQUIREMENTS:
+        role: "user",
+        content: `Write a comprehensive article about: "${item.title}"
+
+RSS Article Content:
+${(item.contentSnippet || item.content || item.title || "").slice(0, 3000)}
+
+CRITICAL: The article MUST be about "${item.title}". Use the blueprint structure as a guide, but adapt ALL content to match this specific topic. Do NOT write generic content.
+
+CRITICAL REQUIREMENTS:
 
 1. **Word Count**: The article MUST be at least 1,200 words. Target 1,200-1,600 words for optimal SEO.
 
@@ -118,11 +134,15 @@ Topic Description: ${blueprint.description}`,
      * This is authority content, not a service page or marketing material
      * Maximum ONE subtle CTA at the very end if absolutely necessary, but prefer NO CTAs
 
-5. **Evergreen Theme Extraction**: 
-   - Extract the underlying evergreen concept from the RSS content
-   - Do NOT center the article around the specific company mentioned
-   - Build the article around the broader theme, principle, or strategy
-   - Use company examples only as supporting context or case studies
+5. **RSS Article Topic Matching - CRITICAL**: 
+   - The article MUST be about "${item.title}" - the specific topic from the RSS feed
+   - Use the RSS article content provided above to understand the topic
+   - Write about the specific topic in the RSS title, NOT a generic guide
+   - If the RSS article is about "Google's AI Overviews Can Scam You", write about that specific topic (AI Overviews, scams, safety)
+   - If the RSS article is about "AI Companies", write about AI companies specifically
+   - Adapt the blueprint sections to match the RSS article topic (e.g., if RSS is about scams, write about scams and safety, not generic AI development)
+   - Do NOT write generic content that ignores the RSS article topic
+   - The content must directly relate to and expand on the RSS article's topic
 
 6. **Primary Keyword**: Identify and naturally integrate ONE clear primary keyword throughout:
    - In the H1 title (already provided in blueprint)
