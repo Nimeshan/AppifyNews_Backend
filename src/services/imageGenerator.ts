@@ -26,7 +26,7 @@ export async function generateImage(title: string, topic: string): Promise<strin
     model: "grok-2-image",
     prompt: `A modern, clean, professional blog hero image for a tech article titled "${title}". Topic: ${topic}. Style: minimalist, futuristic, suitable for a technology company blog. No text in the image.`,
     n: 1,
-    size: "1024x1024" as any,
+    // Note: Grok-2-image doesn't support size parameter - it generates at a fixed size
   });
 
   const imageUrl = response.data?.[0]?.url;
