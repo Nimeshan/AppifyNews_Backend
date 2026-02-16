@@ -22,9 +22,35 @@ function getXAI(): OpenAI {
 export async function generateImage(title: string, topic: string): Promise<string> {
   console.log(`[Grok] Generating image for: ${title}`);
 
+  // Create a more relevant prompt based on the article title and topic
+  // Extract key concepts from title to make the image more relevant
+  const titleLower = title.toLowerCase();
+  let imageDescription = "";
+  
+  // Generate relevant image description based on article content
+  if (titleLower.includes("ai") || titleLower.includes("artificial intelligence") || titleLower.includes("agent")) {
+    imageDescription = "futuristic AI technology, neural networks, digital brain, artificial intelligence visualization";
+  } else if (titleLower.includes("app") || titleLower.includes("development") || titleLower.includes("software")) {
+    imageDescription = "modern software development, code visualization, app interface, digital technology";
+  } else if (titleLower.includes("startup") || titleLower.includes("business") || titleLower.includes("company")) {
+    imageDescription = "modern business workspace, startup environment, innovation, growth";
+  } else if (titleLower.includes("web3") || titleLower.includes("blockchain") || titleLower.includes("crypto")) {
+    imageDescription = "blockchain technology, decentralized network, digital currency, web3 infrastructure";
+  } else if (titleLower.includes("design") || titleLower.includes("ux") || titleLower.includes("ui")) {
+    imageDescription = "modern design interface, user experience, creative design elements, digital aesthetics";
+  } else if (titleLower.includes("automation") || titleLower.includes("workflow")) {
+    imageDescription = "automation technology, workflow visualization, process optimization, digital efficiency";
+  } else if (titleLower.includes("work") || titleLower.includes("workplace") || titleLower.includes("culture")) {
+    imageDescription = "modern workplace, collaboration, professional environment, team culture";
+  } else {
+    imageDescription = "modern technology, innovation, digital transformation";
+  }
+
+  const prompt = `Create a professional, modern blog hero image representing: ${imageDescription}. Article topic: ${topic}. Style: clean, minimalist, futuristic, suitable for a technology blog. No text, no words, just visual elements.`;
+
   const response = await getXAI().images.generate({
     model: "grok-2-image",
-    prompt: `A modern, clean, professional blog hero image for a tech article titled "${title}". Topic: ${topic}. Style: minimalist, futuristic, suitable for a technology company blog. No text in the image.`,
+    prompt: prompt,
     n: 1,
     // Note: Grok-2-image doesn't support size parameter - it generates at a fixed size
   });
