@@ -374,7 +374,7 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
         excerpt = excerpt.slice(0, 497) + "...";
       }
 
-      // Step 8: Get image - use RSS image first, then try to extract from article page, then generate with Grok-2-Image (OpenAI mode only)
+      // Step 8: Get image - use RSS image first, try to upload it, only use Grok if RSS image fails
       // All images are uploaded to Railbucket for consistent storage
       let imageUrl = item.imageUrl || item.enclosure?.url || "";
       
@@ -390,30 +390,32 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
       }
       
       if (imageUrl) {
-        // Image available - upload to Railbucket (both modes)
-        console.log("[Pipeline] Using image, uploading to Railbucket...");
+        // Try to use RSS image - upload to Railbucket
+        console.log("[Pipeline] RSS image found, attempting to upload to Railbucket...");
         try {
           const filename = `${slugify(blogTitle, { lower: true, strict: true })}-${Date.now()}.png`;
           imageUrl = await uploadImageToRailbucket(imageUrl, filename);
-          console.log("[Pipeline] Image uploaded to Railbucket");
+          console.log("[Pipeline] RSS image uploaded to Railbucket successfully");
         } catch (uploadError) {
-          console.error("[Pipeline] Failed to upload image to Railbucket, using original URL:", uploadError);
-          // Keep original URL if upload fails
-        }
-      } else {
-        // No image found anywhere - generate with Grok (OpenAI mode) or use placeholder (Code mode)
-        if (USE_CODE_GENERATION) {
-          console.log("[Pipeline] No image found anywhere, using placeholder (code-based mode)");
-          imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
-        } else {
-          console.log("[Pipeline] No image found, generating with Grok-2-Image...");
+          // RSS image URL failed (can't download/access) - fall back to Grok generation
+          console.error("[Pipeline] RSS image URL failed or couldn't be accessed, generating with Grok-2-Image instead:", uploadError);
           try {
             imageUrl = await generateImage(blogTitle, seoResult.topics);
             console.log("[Pipeline] Image generated successfully with Grok-2-Image");
           } catch (imgError) {
-            console.error("[Pipeline] Image generation failed, using placeholder:", imgError);
+            console.error("[Pipeline] Grok image generation also failed, using placeholder:", imgError);
             imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
           }
+        }
+      } else {
+        // No RSS image found - generate with Grok (both modes) or use placeholder
+        console.log("[Pipeline] No RSS image found, generating with Grok-2-Image...");
+        try {
+          imageUrl = await generateImage(blogTitle, seoResult.topics);
+          console.log("[Pipeline] Image generated successfully with Grok-2-Image");
+        } catch (imgError) {
+          console.error("[Pipeline] Image generation failed, using placeholder:", imgError);
+          imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
         }
       }
 
