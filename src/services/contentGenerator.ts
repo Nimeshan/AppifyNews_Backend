@@ -12,7 +12,7 @@ function getOpenAI(): OpenAI {
 }
 
 /**
- * Generate a blog post from an RSS article using OpenAI GPT-4o.
+ * Generate a blog post from an RSS article using OpenAI GPT-4o-mini.
  * Mirrors the Make.com GPT step with the same prompts.
  */
 export async function generateBlogContent(item: RSSItem): Promise<string> {
