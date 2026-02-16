@@ -325,18 +325,32 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
                                       !titleLower.includes("software") && !titleLower.includes("app") &&
                                       !titleLower.includes("development") && !titleLower.includes("platform");
         
+        // Reject film/entertainment articles UNLESS they explicitly mention our topics
+        const isFilmEntertainment = titleLower.includes("watch") && (titleLower.includes("film") || titleLower.includes("movie")) ||
+                                   titleLower.includes("cult classic") || titleLower.includes("you need to watch") ||
+                                   titleLower.includes("director") && (titleLower.includes("film") || titleLower.includes("movie")) ||
+                                   (titleLower.includes("film") || titleLower.includes("movie")) && 
+                                   (titleLower.includes("surreal") || titleLower.includes("cult") || titleLower.includes("classic"));
+        
         // Check if it has our topics
         const hasOurTopics = itemContent.includes("ai") || itemContent.includes("automation") ||
                             itemContent.includes("web") || itemContent.includes("startup") ||
                             itemContent.includes("web3") || itemContent.includes("blockchain") ||
                             itemContent.includes("work") || itemContent.includes("workplace") ||
                             itemContent.includes("design") || itemContent.includes("ui") ||
-                            itemContent.includes("culture") || itemContent.includes("digital transformation") ||
+                            itemContent.includes("workplace culture") || itemContent.includes("company culture") ||
+                            itemContent.includes("digital transformation") ||
                             itemContent.includes("app development") || itemContent.includes("software development");
         
         // If it's gaming hardware/consumer electronics AND doesn't have our topics, reject it
         if ((isGamingHardware || isConsumerElectronics) && !hasOurTopics) {
           console.log(`[Pipeline] ⚠️  Skipping article - gaming hardware/consumer electronics without our topics: ${item.title}`);
+          continue;
+        }
+        
+        // If it's film/entertainment AND doesn't have our topics, reject it
+        if (isFilmEntertainment && !hasOurTopics) {
+          console.log(`[Pipeline] ⚠️  Skipping article - film/entertainment without our topics: ${item.title}`);
           continue;
         }
         
