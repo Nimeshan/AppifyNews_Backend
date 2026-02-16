@@ -111,7 +111,12 @@ Topic Description: ${blueprint.description}`,
    
    - **Use Cases**: Include real-world examples with technical context
    - **Company Examples**: Use the RSS company only as a supporting example (1-2 sentences max), not the main focus
-   - **NO Promotional Language**: Do NOT include phrases like "Learn more about our services" or "Contact us" - this is authority content, not a service page
+   - **NO Promotional Language or Multiple CTAs**: 
+     * Do NOT include phrases like "Learn more about our services", "Contact us", "Visit our page", "Explore our section"
+     * Do NOT include sentences like "can be explored further through our dedicated [service] page" or "visit our [section]"
+     * Do NOT include multiple promotional links or calls-to-action
+     * This is authority content, not a service page or marketing material
+     * Maximum ONE subtle CTA at the very end if absolutely necessary, but prefer NO CTAs
 
 5. **Evergreen Theme Extraction**: 
    - Extract the underlying evergreen concept from the RSS content
@@ -219,6 +224,41 @@ Generate the article now using the blueprint structure. Output ONLY the article 
   
   // Remove any trailing explanations
   content = content.replace(/\n\n*(In conclusion|To summarize|In summary|Overall|Finally).*$/gim, "");
+  
+  // Remove promotional CTA sentences (keep only the last one if multiple exist, max 1 total)
+  // Pattern: Sentences that mention "our [service/page/section]", "visit our", "explore our", etc.
+  try {
+    const ctaSentencePattern = /([^.!?\n]*(?:can be explored|visit our|explore our|our (?:dedicated|automation|projects|phone|studio|services|section)|for insights|for more|to learn more|to explore).*?(?:page|section|visit|check|see|explore).*?[.!?\n])/gi;
+    
+    const ctaMatches: Array<{ match: string; index: number }> = [];
+    let match;
+    
+    // Reset regex lastIndex and find all matches
+    ctaSentencePattern.lastIndex = 0;
+    while ((match = ctaSentencePattern.exec(content)) !== null) {
+      if (match.index !== undefined && match[0] && match[0].trim().length > 0) {
+        ctaMatches.push({ match: match[0].trim(), index: match.index });
+      }
+    }
+    
+    // Remove all CTAs except the last one (if there are multiple)
+    if (ctaMatches.length > 1) {
+      // Sort by index in reverse order to remove from end to start (preserves indices)
+      ctaMatches.sort((a, b) => b.index - a.index);
+      // Remove all but the last CTA, working backwards to preserve indices
+      let updatedContent = content;
+      for (let i = 0; i < ctaMatches.length - 1; i++) {
+        const cta = ctaMatches[i];
+        const before = updatedContent.substring(0, cta.index);
+        const after = updatedContent.substring(cta.index + cta.match.length);
+        updatedContent = before + after;
+      }
+      content = updatedContent;
+    }
+  } catch (error) {
+    // If CTA removal fails, log but don't break the pipeline
+    console.warn("[ContentGenerator] Error removing CTAs:", error);
+  }
   
   // Remove duplicate section headings (keep only first occurrence)
   const seenHeadings = new Set<string>();
