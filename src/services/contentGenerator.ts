@@ -32,37 +32,40 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     messages: [
       {
         role: "system",
-        content: `You are an authoritative thought leader writing for Appify Australia, a leading app development and digital transformation agency. Your goal is to create original, evergreen, SEO-optimized content that builds long-term topical authority.
+        content: `You are an authoritative thought leader writing for Appify Australia. Your goal is to create original, evergreen, SEO-optimized content.
 
-CRITICAL REQUIREMENTS - FOLLOW THESE EXACTLY:
-1. **MOST IMPORTANT: Write about the ACTUAL RSS article topic**: "${item.title}"
-   - The article MUST be about: "${item.title}"
-   - If the RSS article is about a data breach, write about data breaches and security
-   - If the RSS article is about a company announcement, write about that topic
-   - DO NOT write generic content about AI app development unless the RSS article is specifically about AI app development
-   - The blueprint headings are ONLY for SEO structure - you MUST adapt them to match the RSS topic
+🚨 CRITICAL - READ THIS FIRST:
+The RSS article title is: "${item.title}"
 
-2. **Originality**: Write completely ORIGINAL content - do NOT copy or paraphrase the RSS article. Use it only as a topic reference.
+YOU MUST WRITE ABOUT THIS EXACT TOPIC. DO NOT write generic content.
 
-3. **SEO Structure**: Use the topic blueprint structure as a TEMPLATE, but ADAPT the headings and content to match the actual RSS article topic "${item.title}".
+RSS Article Context:
+- Title: "${item.title}"
+- Summary: ${(item.contentSnippet || item.content || item.title || "").slice(0, 1000)}
 
-RSS Article Reference (for topic understanding only):
-- Title: ${item.title}
-- Topic Summary: ${(item.contentSnippet || item.content || item.title || "").slice(0, 1000)}
+ABSOLUTE REQUIREMENTS:
+1. **TOPIC MATCHING IS MANDATORY**: 
+   - If "${item.title}" is "Peter Steinberger joining OpenAI" → Write about executive moves, talent acquisition, company transitions
+   - If "${item.title}" is "Data breach at company X" → Write about data breaches, security, protection
+   - If "${item.title}" is "AI video generator" → Write about AI video generation
+   - DO NOT write about "AI app development" unless "${item.title}" specifically mentions AI app development
+   - The blueprint below is ONLY a structural template - IGNORE its topic if it doesn't match "${item.title}"
 
-Use the RSS article ONLY to understand the topic. Write completely original content about that topic using your own analysis, examples, and insights.
+2. **HEADING ADAPTATION IS MANDATORY**:
+   - The blueprint headings are TEMPLATES showing the STRUCTURE (definition, how it works, implementation, risks, future)
+   - You MUST create NEW headings that match "${item.title}"
+   - Example: If blueprint says "What Is AI App Development?" but "${item.title}" is about a data breach, use "What Is a Data Breach?" or "Understanding Data Breaches"
+   - Example: If blueprint says "How AI App Development Works" but "${item.title}" is "Peter Steinberger joining OpenAI", use "What This Executive Move Means" or "Understanding Executive Transitions in Tech"
 
-TOPIC BLUEPRINT (use for SEO structure, write original content about RSS topic):
-- Topic: "${item.title}"
-- Required Sections (use these exact headings for SEO):
-${blueprint.sections.map((s, i) => `  ${i + 1}. ## ${s}`).join('\n')}
+3. **CONTENT MUST MATCH RSS TOPIC**:
+   - Write completely ORIGINAL content about "${item.title}"
+   - Do NOT copy the RSS article - write your own analysis
+   - Use the blueprint's STRUCTURE (5 sections: definition, how it works, implementation, risks, future) but fill it with content about "${item.title}"
 
-Topic Description: ${blueprint.description}
+BLUEPRINT STRUCTURE (use ONLY for section organization, NOT for content):
+${blueprint.sections.map((s, i) => `  Section ${i + 1} structure: ${s.split(':')[0] || s} (adapt this heading to match "${item.title}")`).join('\n')}
 
-IMPORTANT: 
-- Write ORIGINAL content about the RSS topic - do not copy or paraphrase
-- Use the blueprint headings for SEO structure
-- Match the topic but be completely original in your writing`,
+REMEMBER: The blueprint topic (${blueprint.description}) is IRRELEVANT if it doesn't match "${item.title}". Use only the STRUCTURE (5 sections), create your own headings and content about "${item.title}".`,
       },
       {
         role: "user",
@@ -83,7 +86,7 @@ CRITICAL REQUIREMENTS:
 
 2. **Output Format - CRITICAL**:
    - Output ONLY the article content in markdown format
-   - Use ## for H2 headings (use the EXACT headings from the blueprint)
+   - Use ## for H2 headings (create NEW headings that match "${item.title}", do NOT use blueprint headings verbatim)
    - Use ### for H3 subheadings if needed within sections
    - Use regular paragraphs (no markdown formatting like **bold** or *italic*)
    - NO bullet points, NO checklists, NO numbered lists
@@ -94,13 +97,21 @@ CRITICAL REQUIREMENTS:
    - Start directly with the first section heading - no preamble
    - End directly with the last section content - no conclusion statements
 
-3. **Required Structure - ADAPT BLUEPRINT HEADINGS TO MATCH RSS TOPIC**: 
-   - You MUST adapt the blueprint headings to match "${item.title}"
-   - The blueprint headings are TEMPLATES - adapt them to the actual topic
-   - Example: If "${item.title}" is about a data breach and blueprint says "What Is AI App Development?", adapt it to "What Is a Data Breach?" or "Understanding Data Breaches"
-   - Example: If "${item.title}" is about Hollywood and blueprint says "How AI App Development Works", adapt it to "How AI Video Generators Work" or similar
-   - Start with an adapted version of the first section heading that matches "${item.title}"
-   - Follow with adapted versions of the remaining sections that match "${item.title}"
+3. **Required Structure - CREATE HEADINGS THAT MATCH "${item.title}"**: 
+   - DO NOT use blueprint headings if they don't match "${item.title}"
+   - CREATE NEW headings based on "${item.title}" using the blueprint's STRUCTURE (5 sections)
+   - Example: If "${item.title}" is "Peter Steinberger joining OpenAI":
+     * Section 1: "What This Executive Move Means for OpenAI" (NOT "What Is AI App Development?")
+     * Section 2: "The Context: OpenClaw and Peter Steinberger's Background" (NOT "How AI App Development Works")
+     * Section 3: "Implications for OpenAI's Strategy" (NOT "Implementation Strategies")
+     * Section 4: "Industry Impact and Future Outlook" (adapt from blueprint structure)
+   - Example: If "${item.title}" is about a data breach:
+     * Section 1: "Understanding the Data Breach Incident" (NOT "What Is AI App Development?")
+     * Section 2: "How the Breach Occurred" (NOT "How AI App Development Works")
+     * Section 3: "Impact and Consequences" (NOT "Implementation Strategies")
+     * Section 4: "Prevention and Future Security Measures" (adapt from blueprint structure)
+   - Start with a heading that matches "${item.title}"
+   - Follow with 4 more sections, each with headings adapted to "${item.title}"
    - Each section must have 2-3 substantial paragraphs (minimum 150 words per section)
    - Each paragraph must be a FULL ANALYTICAL PARAGRAPH (minimum 120-180 words, 4-6 sentences) - NO bullet points or checklists
    - Each paragraph MUST include:
@@ -203,12 +214,25 @@ CRITICAL REQUIREMENTS:
 
 Generate an ORIGINAL article about "${item.title}". 
 
-CRITICAL: The article MUST be about "${item.title}" - adapt the blueprint headings to match this topic. For example:
-- If "${item.title}" is about a data breach, adapt headings to be about data breaches, security, protection
-- If "${item.title}" is about a company announcement, adapt headings to be about that topic
-- DO NOT use generic "AI App Development" headings if "${item.title}" is not about AI app development
+🚨 FINAL REMINDER - THIS IS CRITICAL:
+- The article MUST be about "${item.title}" - NOT about the blueprint topic
+- If "${item.title}" is "Peter Steinberger joining OpenAI" → Write about executive moves, talent, company transitions
+- If "${item.title}" is about a data breach → Write about data breaches, security, protection  
+- If "${item.title}" is about AI video generators → Write about AI video generation
+- DO NOT write about "AI App Development" unless "${item.title}" specifically mentions it
 
-Use the blueprint structure as a TEMPLATE for SEO, but ADAPT the headings and ALL content to match "${item.title}". Write completely original content about the RSS topic. Do NOT copy the RSS article - write your own unique analysis, examples, and insights. Output ONLY the article content in markdown format - start with the first section heading, adapt the blueprint headings to match the topic, no explanations, no introductions, no conclusions.`,
+HEADING REQUIREMENTS:
+- Create 5 NEW headings that match "${item.title}" (one for each section)
+- DO NOT use blueprint headings verbatim if they don't match "${item.title}"
+- Use the blueprint's STRUCTURE (definition → how it works → implementation → risks → future) but create headings about "${item.title}"
+
+CONTENT REQUIREMENTS:
+- Write completely original content about "${item.title}"
+- Do NOT copy the RSS article
+- Fill each section with content relevant to "${item.title}"
+- Use the blueprint structure (5 sections) but write about "${item.title}"
+
+Output ONLY the article content in markdown format - start with the first section heading about "${item.title}", no explanations, no introductions, no conclusions.`,
       },
     ],
   });
