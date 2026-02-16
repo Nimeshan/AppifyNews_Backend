@@ -214,48 +214,68 @@ function cleanContent(content: string): string {
 }
 
 /**
- * Generate SEO-friendly dynamic headings with improved H1
+ * Generate SEO-friendly headings based on RSS article title (not generic)
  */
-function getDynamicHeadings(coreConcept: string): {
+function getDynamicHeadings(rssTitle: string, coreConcept: string): {
   h1: string;
   section1: string;
   section2: string;
   section3: string;
   section4: string;
 } {
-  const capitalized = coreConcept.charAt(0).toUpperCase() + coreConcept.slice(1);
-  const conceptLower = coreConcept.toLowerCase();
+  const titleLower = rssTitle.toLowerCase();
   
-  let h1: string;
+  // Use RSS title as H1, but make it SEO-friendly
+  let h1 = rssTitle;
+  // If title is too short or doesn't have SEO structure, enhance it slightly
+  if (rssTitle.length < 40 || !rssTitle.includes(":") && !rssTitle.includes("-")) {
+    // Add a subtle SEO enhancement without changing the meaning
+    const words = rssTitle.split(/\s+/);
+    if (words.length < 6) {
+      h1 = `${rssTitle}: A Comprehensive Guide`;
+    } else {
+      h1 = rssTitle; // Keep original if it's already substantial
+    }
+  }
+  
+  // Generate topic-specific section headings based on RSS title content
   let section1: string;
   let section2: string;
   let section3: string;
   let section4: string;
   
-  if (conceptLower.includes("ai agent")) {
-    h1 = `${capitalized}: Definition, Benefits, Implementation, and Enterprise Applications`;
-    section1 = "How AI Agents Work in Enterprise Environments";
-    section2 = "Benefits and Applications of AI Agent Technology";
-    section3 = "Implementation Strategies for AI Agents";
-    section4 = "Future Outlook for AI Agent Adoption";
-  } else if (conceptLower.includes("startup accelerator")) {
-    h1 = `${capitalized}: Definition, Benefits, Implementation, and Program Structure`;
-    section1 = "How Startup Accelerators Support Early-Stage Companies";
-    section2 = "Key Benefits of Startup Accelerator Programs";
-    section3 = "Evaluating Startup Accelerator Opportunities";
-    section4 = "Impact of Accelerators on Innovation Ecosystems";
-  } else if (conceptLower.includes("ai software")) {
-    h1 = `${capitalized}: Definition, Benefits, Implementation, and Integration Guide`;
-    section1 = "How AI Software Transforms Business Operations";
-    section2 = "Key Benefits of AI Software Integration";
-    section3 = "Implementation Best Practices for AI Software";
-    section4 = "Future Trends in AI Software Development";
+  if (titleLower.includes("scam") || titleLower.includes("safe") || titleLower.includes("security") || titleLower.includes("risk") || titleLower.includes("protect")) {
+    section1 = "Understanding the Risks and Security Concerns";
+    section2 = "Key Safety Measures and Best Practices";
+    section3 = "How to Stay Protected and Mitigate Threats";
+    section4 = "Future Outlook and Evolving Security Landscape";
+  } else if (titleLower.includes("company") || titleLower.includes("companies") || titleLower.includes("business")) {
+    section1 = "Current Landscape and Industry Trends";
+    section2 = "Key Benefits and Strategic Advantages";
+    section3 = "Implementation Strategies for Organizations";
+    section4 = "Future Outlook and Market Evolution";
+  } else if (titleLower.includes("guide") || titleLower.includes("how to") || titleLower.includes("best practices") || titleLower.includes("tips")) {
+    section1 = "Understanding the Fundamentals";
+    section2 = "Key Principles and Best Practices";
+    section3 = "Implementation Strategies and Approaches";
+    section4 = "Advanced Considerations and Future Trends";
+  } else if (titleLower.includes("future") || titleLower.includes("trend") || titleLower.includes("outlook") || titleLower.includes("predict")) {
+    section1 = "Current State and Emerging Patterns";
+    section2 = "Key Trends and Developments";
+    section3 = "Strategic Implications for Organizations";
+    section4 = "Future Outlook and Predictions";
+  } else if (titleLower.includes("ai") || titleLower.includes("artificial intelligence")) {
+    section1 = "How AI Technology Works and Functions";
+    section2 = "Key Benefits and Applications";
+    section3 = "Implementation Strategies and Best Practices";
+    section4 = "Future Outlook for AI Development";
   } else {
-    h1 = `${capitalized}: Definition, Benefits, Implementation, and Applications`;
-    section1 = `How ${capitalized} Works`;
-    section2 = `Benefits of ${capitalized}`;
-    section3 = `Implementation Strategies for ${capitalized}`;
-    section4 = `Future Outlook for ${capitalized}`;
+    // Generic but still topic-relevant based on core concept
+    const capitalized = coreConcept.charAt(0).toUpperCase() + coreConcept.slice(1);
+    section1 = `Understanding ${capitalized} and Its Applications`;
+    section2 = `Key Benefits and Strategic Advantages`;
+    section3 = `Implementation Strategies and Best Practices`;
+    section4 = `Future Outlook and Emerging Trends`;
   }
   
   return { h1, section1, section2, section3, section4 };
@@ -315,24 +335,52 @@ function generateTopicSpecificContent(rssTitle: string, rssContent: string, core
   // Extract key points from RSS content and expand them
   const keyPoints = extractKeyPoints(rssContent, rssTitle);
   
-  // Section 1: How it works / Understanding the topic
+  // Section 1: How it works / Understanding the topic - use RSS content
   if (keyPoints.length > 0) {
-    section1.push(expandPoint(keyPoints[0] || `Understanding ${coreConcept}`, rssTitle, coreConcept));
+    section1.push(expandPoint(keyPoints[0] || `Understanding ${rssTitle}`, rssTitle, coreConcept));
     if (keyPoints.length > 1) {
       section1.push(expandPoint(keyPoints[1], rssTitle, coreConcept));
     }
+    if (keyPoints.length > 2) {
+      section1.push(expandPoint(keyPoints[2], rssTitle, coreConcept));
+    }
   } else {
-    section1.push(`Understanding ${coreConcept} requires examining how these technologies function in real-world environments. Organizations need to consider technical architecture, integration requirements, and operational implications when evaluating solutions. This understanding forms the foundation for successful implementation and adoption.`);
+    // Generate topic-specific content based on RSS title
+    const titleWords = rssTitle.toLowerCase();
+    if (titleWords.includes("scam") || titleWords.includes("safe") || titleWords.includes("security")) {
+      section1.push(`${rssTitle} highlights critical security considerations that organizations must address. Understanding these risks and implementing appropriate safeguards is essential for protecting operations and users. This requires careful evaluation of potential vulnerabilities and proactive measures to mitigate threats.`);
+    } else if (titleWords.includes("company") || titleWords.includes("companies")) {
+      section1.push(`${rssTitle} reflects current trends in how organizations are leveraging ${coreConcept}. Understanding these patterns helps businesses make informed decisions about adoption and implementation strategies. Companies are exploring new applications and approaches to gain competitive advantages.`);
+    } else {
+      section1.push(`${rssTitle} represents an important development in ${coreConcept}. Understanding this topic requires examining how these technologies function in real-world environments and the implications for organizations. This knowledge forms the foundation for successful implementation and strategic decision-making.`);
+    }
   }
   
-  // Section 2: Benefits / Applications
-  section2.push(`The benefits of ${coreConcept} extend across multiple dimensions of organizational operations. Companies can achieve improved efficiency, enhanced decision-making capabilities, and better resource utilization through strategic implementation. These advantages become more significant as organizations scale their adoption and integrate these technologies into core business processes.`);
+  // Section 2: Benefits / Applications - make it topic-specific
+  const titleWords = rssTitle.toLowerCase();
+  if (titleWords.includes("scam") || titleWords.includes("safe") || titleWords.includes("security")) {
+    section2.push(`Addressing the security concerns highlighted in ${rssTitle} provides organizations with essential protection mechanisms. Implementing appropriate safety measures helps prevent potential threats and vulnerabilities. These safeguards become critical as organizations scale their operations and handle sensitive data.`);
+  } else if (titleWords.includes("company") || titleWords.includes("companies")) {
+    section2.push(`The developments discussed in ${rssTitle} offer significant benefits for organizations exploring ${coreConcept}. Companies can achieve improved efficiency, enhanced capabilities, and better strategic positioning through informed adoption. These advantages become more significant as organizations integrate these technologies into their core business processes.`);
+  } else {
+    section2.push(`The benefits of ${coreConcept} extend across multiple dimensions of organizational operations. Companies can achieve improved efficiency, enhanced decision-making capabilities, and better resource utilization through strategic implementation. These advantages become more significant as organizations scale their adoption and integrate these technologies into core business processes.`);
+  }
   
-  // Section 3: Implementation / Strategy
-  section3.push(`Implementing ${coreConcept} successfully requires a structured approach that addresses technical, organizational, and strategic considerations. Organizations should begin by clearly defining objectives, assessing current capabilities, and identifying integration points with existing systems. This planning phase is critical for ensuring smooth deployment and maximizing value from the investment.`);
+  // Section 3: Implementation / Strategy - make it topic-specific
+  if (titleWords.includes("scam") || titleWords.includes("safe") || titleWords.includes("security")) {
+    section3.push(`Implementing the safety measures discussed in ${rssTitle} requires a structured approach that addresses technical, organizational, and strategic considerations. Organizations should begin by clearly defining security objectives, assessing current vulnerabilities, and identifying protection mechanisms. This planning phase is critical for ensuring comprehensive protection and minimizing risks.`);
+  } else if (titleWords.includes("guide") || titleWords.includes("how to")) {
+    section3.push(`Following the guidance in ${rssTitle} requires a structured approach that addresses technical, organizational, and strategic considerations. Organizations should begin by clearly defining objectives, assessing current capabilities, and identifying implementation steps. This planning phase is critical for ensuring successful adoption and maximizing value from the investment.`);
+  } else {
+    section3.push(`Implementing ${coreConcept} successfully requires a structured approach that addresses technical, organizational, and strategic considerations. Organizations should begin by clearly defining objectives, assessing current capabilities, and identifying integration points with existing systems. This planning phase is critical for ensuring smooth deployment and maximizing value from the investment.`);
+  }
   
-  // Section 4: Considerations / Future
-  section4.push(`As ${coreConcept} continues to evolve, organizations must stay informed about emerging trends and best practices. The landscape changes rapidly, with new capabilities and applications emerging regularly. Companies that maintain awareness of these developments position themselves to adapt quickly and capitalize on new opportunities as they arise.`);
+  // Section 4: Considerations / Future - make it topic-specific
+  if (titleWords.includes("future") || titleWords.includes("trend") || titleWords.includes("outlook")) {
+    section4.push(`As discussed in ${rssTitle}, the future of ${coreConcept} is shaped by emerging trends and technological advances. Organizations must stay informed about these developments to prepare for upcoming changes and opportunities. The landscape evolves rapidly, requiring continuous awareness and strategic adaptation.`);
+  } else {
+    section4.push(`As ${coreConcept} continues to evolve, organizations must stay informed about emerging trends and best practices. The landscape changes rapidly, with new capabilities and applications emerging regularly. Companies that maintain awareness of these developments position themselves to adapt quickly and capitalize on new opportunities as they arise.`);
+  }
   
   return { definition, section1, section2, section3, section4 };
 }
@@ -387,7 +435,7 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     
     // Extract core concept for dynamic headings
     const coreConcept = extractCoreConcept(item.title, sourceContent);
-    const headings = getDynamicHeadings(coreConcept);
+    const headings = getDynamicHeadings(item.title, coreConcept); // Pass RSS title for topic-specific headings
     
     // Generate topic-specific content based on RSS article
     const topicContent = generateTopicSpecificContent(item.title, sourceContent, coreConcept);
@@ -470,7 +518,7 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     // Fallback: Generate topic-specific content from RSS snippet
     const fallbackContent = item.contentSnippet || item.content || item.title;
     const coreConcept = extractCoreConcept(item.title, fallbackContent);
-    const headings = getDynamicHeadings(coreConcept);
+    const headings = getDynamicHeadings(item.title, coreConcept); // Pass RSS title for topic-specific headings
     const topicContent = generateTopicSpecificContent(item.title, fallbackContent, coreConcept);
     
     return `# ${headings.h1}\n\n${topicContent.definition}\n\n## ${headings.section1}\n\n${topicContent.section1.join("\n\n")}\n\n## ${headings.section2}\n\n${topicContent.section2.join("\n\n")}\n\n## ${headings.section3}\n\n${topicContent.section3.join("\n\n")}\n\n## ${headings.section4}\n\n${topicContent.section4.join("\n\n")}`;
