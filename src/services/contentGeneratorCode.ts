@@ -4,9 +4,9 @@ import http from "http";
 import { URL } from "url";
 
 /**
- * Extract main content from an article URL using basic HTML parsing.
+ * Extract main content and image from an article URL using basic HTML parsing.
  */
-async function fetchArticleContent(url: string): Promise<string> {
+async function fetchArticleContent(url: string): Promise<{ content: string; imageUrl?: string }> {
   return new Promise((resolve, reject) => {
     const parsedUrl = new URL(url);
     const client = parsedUrl.protocol === "https:" ? https : http;
@@ -24,6 +24,42 @@ async function fetchArticleContent(url: string): Promise<string> {
         });
 
         response.on("end", () => {
+          // Extract image from meta tags (og:image, twitter:image, or first img tag)
+          let imageUrl: string | undefined;
+          
+          // Try og:image first (most common)
+          const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+          if (ogImageMatch && ogImageMatch[1]) {
+            imageUrl = ogImageMatch[1];
+          }
+          
+          // Try twitter:image if og:image not found
+          if (!imageUrl) {
+            const twitterImageMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+            if (twitterImageMatch && twitterImageMatch[1]) {
+              imageUrl = twitterImageMatch[1];
+            }
+          }
+          
+          // Try first img tag in article/main content if meta tags not found
+          if (!imageUrl) {
+            const articleMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
+            const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
+            const contentArea = articleMatch?.[1] || mainMatch?.[1] || html;
+            
+            const imgMatch = contentArea.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+            if (imgMatch && imgMatch[1]) {
+              imageUrl = imgMatch[1];
+              // Make relative URLs absolute
+              if (imageUrl.startsWith("/")) {
+                imageUrl = `${parsedUrl.protocol}//${parsedUrl.host}${imageUrl}`;
+              } else if (imageUrl.startsWith("//")) {
+                imageUrl = `${parsedUrl.protocol}${imageUrl}`;
+              }
+            }
+          }
+          
+          // Extract text content
           const articleMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
           const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
           const contentMatch = html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
@@ -40,7 +76,10 @@ async function fetchArticleContent(url: string): Promise<string> {
             .slice(0, 30)
             .join("\n\n");
 
-          resolve(text || content.replace(/<[^>]+>/g, " ").slice(0, 5000));
+          resolve({
+            content: text || content.replace(/<[^>]+>/g, " ").slice(0, 5000),
+            imageUrl,
+          });
         });
       })
       .on("error", reject);
@@ -430,8 +469,14 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
   console.log(`[Code] Generating blog for: ${item.title}`);
 
   try {
-    const articleContent = await fetchArticleContent(item.link);
-    const sourceContent = articleContent || item.contentSnippet || item.content || "";
+    const articleData = await fetchArticleContent(item.link);
+    const sourceContent = articleData.content || item.contentSnippet || item.content || "";
+    
+    // Set imageUrl if extracted from article page
+    if (articleData.imageUrl && !item.imageUrl) {
+      item.imageUrl = articleData.imageUrl;
+      console.log(`[Code] Extracted image from article page: ${articleData.imageUrl}`);
+    }
     
     // Extract core concept for dynamic headings
     const coreConcept = extractCoreConcept(item.title, sourceContent);

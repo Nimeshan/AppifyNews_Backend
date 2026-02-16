@@ -457,17 +457,13 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
 
       // Step 8: Get image - use RSS image first, try to upload it, only use Grok if RSS image fails
       // All images are uploaded to Railbucket for consistent storage
+      // Note: For code-based generation, generateBlogContent may have already extracted imageUrl from article page
       let imageUrl = item.imageUrl || item.enclosure?.url || "";
       
-      // If no RSS image and using code-based generation, try to extract from article page
-      if (!imageUrl && USE_CODE_GENERATION) {
-        console.log("[Pipeline] No RSS image found, checking if image was extracted from article page...");
-        // The generateBlogContent function should have set item.imageUrl if it found an image
-        // This happens in contentGeneratorCode.ts when fetchArticleContent extracts og:image
-        if (item.imageUrl) {
-          imageUrl = item.imageUrl;
-          console.log("[Pipeline] Found image from article page extraction");
-        }
+      if (imageUrl) {
+        console.log(`[Pipeline] Image found: ${imageUrl.substring(0, 80)}... (from ${item.imageUrl ? 'article page/RSS' : 'RSS enclosure'})`);
+      } else {
+        console.log("[Pipeline] No RSS image found in feed or article page");
       }
       
       if (imageUrl) {
