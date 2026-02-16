@@ -37,6 +37,30 @@ const convertToHTML = USE_CODE_GENERATION ? convertToHTMLCode : convertToHTMLOpe
 const generateBlogTitle = USE_CODE_GENERATION ? generateBlogTitleCode : generateBlogTitleOpenAI;
 const generateMetaDescription = USE_CODE_GENERATION ? generateMetaDescriptionCode : generateMetaDescriptionOpenAI;
 
+// Helper function to retry API calls with exponential backoff for rate limits
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      const isRateLimit = error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("rate limit");
+      
+      if (isRateLimit && attempt < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff: 1s, 2s, 4s
+        console.log(`[Retry] Rate limit hit, waiting ${delay}ms before retry ${attempt + 2}/${maxRetries}...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error; // Re-throw if not rate limit or out of retries
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
 // Helper function for AI-based semantic article filtering
 async function checkArticleRelevanceWithAI(item: RSSItem): Promise<boolean> {
   if (!process.env.OPENAI_API_KEY) {
@@ -48,14 +72,15 @@ async function checkArticleRelevanceWithAI(item: RSSItem): Promise<boolean> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const articleText = `${item.title}\n\n${item.contentSnippet || item.content || ""}`.slice(0, 2000); // Limit to 2000 chars for cost efficiency
     
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Use mini for cost efficiency
-      temperature: 0,
-      max_tokens: 10,
-      messages: [
-        {
-          role: "system",
-          content: `You are an article filter for a tech blog. Determine if an article is relevant to these topics:
+    const response = await retryWithBackoff(async () => {
+      return await openai.chat.completions.create({
+        model: "gpt-4o-mini", // Use mini for cost efficiency
+        temperature: 0,
+        max_tokens: 10,
+        messages: [
+          {
+            role: "system",
+            content: `You are an article filter for a tech blog. Determine if an article is relevant to these topics:
 - AI (artificial intelligence, machine learning, AI software, AI agents, AI tools)
 - Web (web development, websites, web applications)
 - Startups (startups, accelerators, venture capital, entrepreneurship)
@@ -68,12 +93,13 @@ async function checkArticleRelevanceWithAI(item: RSSItem): Promise<boolean> {
 - App development (mobile apps, software development)
 
 Respond with ONLY "YES" if the article is relevant to any of these topics, or "NO" if it's not relevant.`,
-        },
-        {
-          role: "user",
-          content: `Article title: "${item.title}"\n\nArticle content: "${articleText}"\n\nIs this article relevant to any of the topics listed?`,
-        },
-      ],
+          },
+          {
+            role: "user",
+            content: `Article title: "${item.title}"\n\nArticle content: "${articleText}"\n\nIs this article relevant to any of the topics listed?`,
+          },
+        ],
+      });
     });
 
     const answer = response.choices[0]?.message?.content?.trim().toUpperCase();
@@ -176,8 +202,16 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
   let articlesGenerated = 0;
   let articlesProcessed = 0;
   const maxProcessAttempts = Math.min(newItems.length, maxArticles * 10); // Process up to 10x maxArticles to find valid ones
+  
+  // Add delay between articles to avoid rate limits (especially for AI filter)
+  const delayBetweenArticles = USE_AI_FILTER ? 2000 : 500; // 2s delay if using AI filter, 500ms otherwise
 
   for (const item of newItems) {
+    // Add delay between articles to avoid hitting rate limits
+    if (articlesProcessed > 0) {
+      await new Promise(resolve => setTimeout(resolve, delayBetweenArticles));
+    }
+    
     // Stop if we've generated enough articles
     if (articlesGenerated >= maxArticles) {
       console.log(`[Pipeline] Generated ${articlesGenerated} articles, stopping.`);
