@@ -382,7 +382,7 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
       });
       
       // Check if title contains strong keywords (for articles where title is more descriptive than content)
-      const titleLower = (item.title || "").toLowerCase();
+      // titleLower already declared above
       const titleHasStrongKeyword = titleLower.includes("ai agent") || (titleLower.includes("ai") && titleLower.includes("agent")) || // Match "ai agent", "ai autonomous agent", "ai coding agent", etc.
                                     titleLower.includes("agentic ai") ||
                                     titleLower.includes("ai software") ||
