@@ -194,17 +194,19 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
     return;
   }
 
-  // Process articles until we generate maxArticles successfully (not just process maxArticles items)
+  // Process articles until we generate at least 1 article (or up to maxArticles)
   // This ensures we don't stop early if articles are rejected by the filter
   const generationType = USE_CODE_GENERATION ? "CODE-BASED" : "OpenAI";
-  console.log(`[Pipeline] Processing articles using ${generationType}... (will generate up to ${maxArticles} articles)`);
+  const minArticlesToGenerate = 1; // Always try to generate at least 1 article
+  console.log(`[Pipeline] Processing articles using ${generationType}... (will generate at least ${minArticlesToGenerate} article, up to ${maxArticles} articles)`);
   
   let articlesGenerated = 0;
   let articlesProcessed = 0;
-  const maxProcessAttempts = Math.min(newItems.length, maxArticles * 10); // Process up to 10x maxArticles to find valid ones
+  // Process all items if needed to find at least 1 article, but cap at reasonable limit
+  const maxProcessAttempts = Math.max(newItems.length, maxArticles * 20); // Process all items or up to 20x maxArticles
   
   // Add delay between articles to avoid rate limits (especially for AI filter)
-  const delayBetweenArticles = USE_AI_FILTER ? 2000 : 500; // 2s delay if using AI filter, 500ms otherwise
+  const delayBetweenArticles = USE_AI_FILTER ? 2000 : 300; // 2s delay if using AI filter, 300ms otherwise
 
   for (const item of newItems) {
     // Add delay between articles to avoid hitting rate limits
@@ -212,16 +214,28 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
       await new Promise(resolve => setTimeout(resolve, delayBetweenArticles));
     }
     
-    // Stop if we've generated enough articles
+    // Stop if we've generated enough articles (maxArticles)
     if (articlesGenerated >= maxArticles) {
       console.log(`[Pipeline] Generated ${articlesGenerated} articles, stopping.`);
       break;
     }
     
-    // Stop if we've processed too many without success (avoid infinite loops)
-    if (articlesProcessed >= maxProcessAttempts) {
-      console.log(`[Pipeline] Processed ${articlesProcessed} articles, reached limit. Generated ${articlesGenerated} articles.`);
+    // Stop if we've processed all items and generated at least the minimum
+    if (articlesProcessed >= newItems.length && articlesGenerated >= minArticlesToGenerate) {
+      console.log(`[Pipeline] Processed all ${articlesProcessed} articles. Generated ${articlesGenerated} article(s).`);
       break;
+    }
+    
+    // Stop if we've processed too many without success (avoid infinite loops)
+    // But only if we've already generated at least 1 article
+    if (articlesProcessed >= maxProcessAttempts) {
+      if (articlesGenerated >= minArticlesToGenerate) {
+        console.log(`[Pipeline] Processed ${articlesProcessed} articles, reached limit. Generated ${articlesGenerated} articles.`);
+        break;
+      } else {
+        console.log(`[Pipeline] Processed ${articlesProcessed} articles but haven't generated any yet. Continuing...`);
+        // Don't break - keep trying if we haven't generated any articles yet
+      }
     }
     
     articlesProcessed++;
@@ -334,13 +348,29 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
       const hasTopicAlignment = titleHasAI || contentHasAI || hasWebTopic || hasStartupTopic || hasWeb3Topic || 
                                 hasWorkTopic || hasDesignTopic || hasCultureTopic || hasAutomationTopic;
       
-        // Proceed if there's alignment with core topics (strong alignment, title keywords, or any topic alignment)
-        // Accept articles with: strong alignment, strong title keywords, OR alignment with any allowed topic
-        hasAlignment = hasStrongAlignment || 
-                            titleHasStrongKeyword || 
-                            hasTopicAlignment || // If article aligns with any of our topics, accept it
-                            (hasSecondaryAlignment && hasRelevantCategory) ||
-                            (hasSecondaryAlignment && itemContent.split(/\s+/).length > 50); // If content is substantial and has secondary alignment
+      // Improved filtering: More lenient to catch relevant articles
+      // Check for tech keywords in title/content for better matching
+      const titleHasTechKeywords = titleLower.includes("tech") || titleLower.includes("software") || 
+                                   titleLower.includes("digital") || titleLower.includes("innovation") ||
+                                   titleLower.includes("platform") || titleLower.includes("system") ||
+                                   titleLower.includes("development") || titleLower.includes("startup");
+      
+      const contentHasTechContext = (itemContent.includes("tech") || itemContent.includes("software") || 
+                                     itemContent.includes("digital") || itemContent.includes("innovation") ||
+                                     itemContent.includes("development") || itemContent.includes("startup")) &&
+                                    itemContent.split(/\s+/).length > 30; // Has some substance
+      
+      // Proceed if there's alignment with core topics (strong alignment, title keywords, or any topic alignment)
+      // Accept articles with: strong alignment, strong title keywords, OR alignment with any allowed topic
+      // Improved: Also accept AI/tech combinations and tech keywords with context
+      hasAlignment = hasStrongAlignment || 
+                     titleHasStrongKeyword || 
+                     hasTopicAlignment || // If article aligns with any of our topics, accept it
+                     (hasSecondaryAlignment && hasRelevantCategory) ||
+                     (hasSecondaryAlignment && itemContent.split(/\s+/).length > 50) || // If content is substantial and has secondary alignment
+                     (titleHasAI && titleHasTechKeywords) || // AI + tech in title
+                     (contentHasAI && contentHasTechContext) || // AI + tech context in content
+                     (titleHasTechKeywords && (titleHasAI || contentHasAI)); // Tech keywords + AI mention
       }
       
       if (!hasAlignment) {
