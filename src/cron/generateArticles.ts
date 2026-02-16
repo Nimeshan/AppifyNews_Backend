@@ -199,15 +199,14 @@ export async function generateArticles(): Promise<void> {
                                     titleLower.includes("digital transformation") ||
                                     (titleLower.includes("ai") && (titleLower.includes("tool") || titleLower.includes("platform") || titleLower.includes("system") || titleLower.includes("deploy") || titleLower.includes("expand") || titleLower.includes("coding") || titleLower.includes("development")));
       
-      // Proceed if there's alignment with core topics (strong alignment, title keywords, secondary indicators, or relevant categories)
-      // Accept articles with: strong alignment, strong title keywords, OR (secondary alignment + relevant category), OR (AI in both title and content)
+      // Simple rule: If title has "AI" or "artificial intelligence", accept it (title is usually a good indicator)
       const titleHasAI = titleLower.includes("ai") || titleLower.includes("artificial intelligence");
-      const contentHasAI = itemContent.includes("ai") || itemContent.includes("artificial intelligence");
-      const hasAIInBoth = titleHasAI && contentHasAI; // If AI appears in both title and content, that's a strong signal
       
+      // Proceed if there's alignment with core topics (strong alignment, title keywords, AI in title, secondary indicators, or relevant categories)
+      // Accept articles with: strong alignment, strong title keywords, AI in title, OR (secondary alignment + relevant category)
       const hasAlignment = hasStrongAlignment || 
                           titleHasStrongKeyword || 
-                          hasAIInBoth || // AI in both title and content is a strong signal
+                          titleHasAI || // If title has AI, accept it - simple and effective
                           (hasSecondaryAlignment && hasRelevantCategory) ||
                           (hasSecondaryAlignment && itemContent.split(/\s+/).length > 50); // If content is substantial and has secondary alignment
       
