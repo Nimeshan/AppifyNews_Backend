@@ -27,9 +27,13 @@ export async function generateImage(title: string, topic: string): Promise<strin
   console.log(`[Grok] Generating image for: ${title}`);
   
   // Check if API key is set
-  if (!process.env.XAI_API_KEY) {
+  const apiKey = process.env.XAI_API_KEY;
+  if (!apiKey) {
     throw new Error("XAI_API_KEY is not set. Cannot generate image with Grok.");
   }
+  
+  // Log API key info (first 10 chars only for security)
+  console.log(`[Grok] API key present: ${apiKey.substring(0, 10)}... (length: ${apiKey.length})`);
 
   // Create a more relevant prompt based on the article title and topic
   // Extract key concepts from title to make the image more relevant
@@ -58,6 +62,9 @@ export async function generateImage(title: string, topic: string): Promise<strin
   const prompt = `Create a professional, modern blog hero image representing: ${imageDescription}. Article topic: ${topic}. Style: clean, minimalist, futuristic, suitable for a technology blog. No text, no words, just visual elements.`;
 
   try {
+    console.log(`[Grok] Calling API with model: grok-2-image`);
+    console.log(`[Grok] Prompt: ${prompt.substring(0, 100)}...`);
+    
     const response = await getXAI().images.generate({
       model: "grok-2-image",
       prompt: prompt,
@@ -65,12 +72,15 @@ export async function generateImage(title: string, topic: string): Promise<strin
       // Note: Grok-2-image doesn't support size parameter - it generates at a fixed size
     });
 
+    console.log(`[Grok] API response received:`, JSON.stringify(response, null, 2).substring(0, 500));
+
     const imageUrl = response.data?.[0]?.url;
     if (!imageUrl) {
+      console.error(`[Grok] No image URL in response. Full response:`, JSON.stringify(response, null, 2));
       throw new Error("Grok returned no image URL in response");
     }
     
-    console.log("[Grok] Image generated successfully.");
+    console.log(`[Grok] Image generated successfully. URL: ${imageUrl.substring(0, 100)}...`);
 
     // Upload to Railbucket
     try {
@@ -85,20 +95,41 @@ export async function generateImage(title: string, topic: string): Promise<strin
     }
   } catch (error: any) {
     // Better error logging for debugging
-    console.error(`[Grok] Image generation error:`, error.message);
+    console.error(`[Grok] Image generation error:`, error);
+    console.error(`[Grok] Error message:`, error.message);
+    console.error(`[Grok] Error type:`, error.constructor.name);
+    
     if (error.status) {
       console.error(`[Grok] HTTP Status: ${error.status}`);
+    }
+    if (error.statusCode) {
+      console.error(`[Grok] HTTP Status Code: ${error.statusCode}`);
     }
     if (error.response) {
       console.error(`[Grok] Response:`, JSON.stringify(error.response, null, 2));
     }
+    if (error.body) {
+      console.error(`[Grok] Error body:`, JSON.stringify(error.body, null, 2));
+    }
+    if (error.error) {
+      console.error(`[Grok] Error object:`, JSON.stringify(error.error, null, 2));
+    }
+    
     // Check for common issues
-    if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
-      throw new Error("Grok API key is invalid or missing. Check XAI_API_KEY environment variable.");
+    const errorStr = JSON.stringify(error).toLowerCase();
+    if (errorStr.includes("401") || errorStr.includes("unauthorized") || error.message?.includes("401")) {
+      throw new Error("Grok API key is invalid or missing. Check XAI_API_KEY environment variable in Railway.");
     }
-    if (error.message?.includes("402") || error.message?.includes("Payment")) {
-      throw new Error("Grok API requires payment/subscription. Check your xAI account.");
+    if (errorStr.includes("402") || errorStr.includes("payment") || error.message?.includes("402")) {
+      throw new Error("Grok API requires payment/subscription. Check your xAI account billing.");
     }
-    throw error;
+    if (errorStr.includes("404") || error.message?.includes("404")) {
+      throw new Error("Grok API endpoint not found. Model 'grok-2-image' may not be available or API endpoint changed.");
+    }
+    if (errorStr.includes("429") || error.message?.includes("429")) {
+      throw new Error("Grok API rate limit exceeded. Please wait and try again.");
+    }
+    
+    throw new Error(`Grok image generation failed: ${error.message || 'Unknown error'}`);
   }
 }
