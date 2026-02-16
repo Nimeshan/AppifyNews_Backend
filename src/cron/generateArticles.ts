@@ -199,14 +199,29 @@ export async function generateArticles(): Promise<void> {
                                     titleLower.includes("digital transformation") ||
                                     (titleLower.includes("ai") && (titleLower.includes("tool") || titleLower.includes("platform") || titleLower.includes("system") || titleLower.includes("deploy") || titleLower.includes("expand") || titleLower.includes("coding") || titleLower.includes("development")));
       
-      // Simple rule: If title has "AI" or "artificial intelligence", accept it (title is usually a good indicator)
+      // Check if article aligns with any of our allowed topics (AI, Web, Startups, Web3, Work, Design, Culture, Automation)
+      // Topics can appear in title OR content
       const titleHasAI = titleLower.includes("ai") || titleLower.includes("artificial intelligence");
+      const contentHasAI = itemContent.includes("ai") || itemContent.includes("artificial intelligence") || itemContent.includes("machine learning");
       
-      // Proceed if there's alignment with core topics (strong alignment, title keywords, AI in title, secondary indicators, or relevant categories)
-      // Accept articles with: strong alignment, strong title keywords, AI in title, OR (secondary alignment + relevant category)
+      // Check for other topics in title or content
+      const hasWebTopic = titleLower.includes("web") || itemContent.includes("web") || itemContent.includes("website") || itemContent.includes("web development");
+      const hasStartupTopic = titleLower.includes("startup") || itemContent.includes("startup") || itemContent.includes("accelerator") || itemContent.includes("venture capital");
+      const hasWeb3Topic = titleLower.includes("web3") || titleLower.includes("blockchain") || titleLower.includes("crypto") || itemContent.includes("web3") || itemContent.includes("blockchain") || itemContent.includes("defi");
+      const hasWorkTopic = titleLower.includes("work") || itemContent.includes("workforce") || itemContent.includes("workplace") || itemContent.includes("automation");
+      const hasDesignTopic = titleLower.includes("design") || titleLower.includes("ux") || titleLower.includes("ui") || itemContent.includes("design") || itemContent.includes("user experience");
+      const hasCultureTopic = titleLower.includes("culture") || itemContent.includes("culture") || itemContent.includes("workplace culture");
+      const hasAutomationTopic = titleLower.includes("automation") || itemContent.includes("automation") || itemContent.includes("automate");
+      
+      // Accept if article aligns with ANY of our topics (in title or content)
+      const hasTopicAlignment = titleHasAI || contentHasAI || hasWebTopic || hasStartupTopic || hasWeb3Topic || 
+                                hasWorkTopic || hasDesignTopic || hasCultureTopic || hasAutomationTopic;
+      
+      // Proceed if there's alignment with core topics (strong alignment, title keywords, or any topic alignment)
+      // Accept articles with: strong alignment, strong title keywords, OR alignment with any allowed topic
       const hasAlignment = hasStrongAlignment || 
                           titleHasStrongKeyword || 
-                          titleHasAI || // If title has AI, accept it - simple and effective
+                          hasTopicAlignment || // If article aligns with any of our topics, accept it
                           (hasSecondaryAlignment && hasRelevantCategory) ||
                           (hasSecondaryAlignment && itemContent.split(/\s+/).length > 50); // If content is substantial and has secondary alignment
       
