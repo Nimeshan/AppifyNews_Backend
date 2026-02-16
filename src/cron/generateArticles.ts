@@ -315,6 +315,31 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
         const itemContent = (item.contentSnippet || item.content || item.title || "").toLowerCase();
         const titleLower = (item.title || "").toLowerCase();
         
+        // Reject gaming hardware/consumer electronics UNLESS they explicitly mention our topics
+        const isGamingHardware = titleLower.includes("gaming mouse") || titleLower.includes("gaming keyboard") || 
+                                 titleLower.includes("gaming headset") || titleLower.includes("gaming gear") ||
+                                 titleLower.includes("gaming peripheral") || titleLower.includes("gaming equipment");
+        const isConsumerElectronics = (titleLower.includes("mouse") || titleLower.includes("keyboard") || 
+                                       titleLower.includes("headset") || titleLower.includes("monitor") ||
+                                       titleLower.includes("hardware") || titleLower.includes("peripheral")) &&
+                                      !titleLower.includes("software") && !titleLower.includes("app") &&
+                                      !titleLower.includes("development") && !titleLower.includes("platform");
+        
+        // Check if it has our topics
+        const hasOurTopics = itemContent.includes("ai") || itemContent.includes("automation") ||
+                            itemContent.includes("web") || itemContent.includes("startup") ||
+                            itemContent.includes("web3") || itemContent.includes("blockchain") ||
+                            itemContent.includes("work") || itemContent.includes("workplace") ||
+                            itemContent.includes("design") || itemContent.includes("ui") ||
+                            itemContent.includes("culture") || itemContent.includes("digital transformation") ||
+                            itemContent.includes("app development") || itemContent.includes("software development");
+        
+        // If it's gaming hardware/consumer electronics AND doesn't have our topics, reject it
+        if ((isGamingHardware || isConsumerElectronics) && !hasOurTopics) {
+          console.log(`[Pipeline] ⚠️  Skipping article - gaming hardware/consumer electronics without our topics: ${item.title}`);
+          continue;
+        }
+        
         // Strong alignment indicators for our core topics
         const hasStrongAlignment = 
         // AI software (including AI agents, AI tools, machine learning, AI industry, OpenAI)
