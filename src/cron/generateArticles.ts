@@ -168,12 +168,29 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
     return;
   }
 
-  // Process up to maxArticles per run to control API costs
-  const itemsToProcess = newItems.slice(0, maxArticles);
+  // Process articles until we generate maxArticles successfully (not just process maxArticles items)
+  // This ensures we don't stop early if articles are rejected by the filter
   const generationType = USE_CODE_GENERATION ? "CODE-BASED" : "OpenAI";
-  console.log(`[Pipeline] Processing ${itemsToProcess.length} articles using ${generationType}...`);
+  console.log(`[Pipeline] Processing articles using ${generationType}... (will generate up to ${maxArticles} articles)`);
+  
+  let articlesGenerated = 0;
+  let articlesProcessed = 0;
+  const maxProcessAttempts = Math.min(newItems.length, maxArticles * 10); // Process up to 10x maxArticles to find valid ones
 
-  for (const item of itemsToProcess) {
+  for (const item of newItems) {
+    // Stop if we've generated enough articles
+    if (articlesGenerated >= maxArticles) {
+      console.log(`[Pipeline] Generated ${articlesGenerated} articles, stopping.`);
+      break;
+    }
+    
+    // Stop if we've processed too many without success (avoid infinite loops)
+    if (articlesProcessed >= maxProcessAttempts) {
+      console.log(`[Pipeline] Processed ${articlesProcessed} articles, reached limit. Generated ${articlesGenerated} articles.`);
+      break;
+    }
+    
+    articlesProcessed++;
     try {
       console.log(`\n[Pipeline] --- Processing: ${item.title} ---`);
       
@@ -446,14 +463,15 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
         },
       });
 
-      console.log(`[Pipeline] Saved article: ${article.slug} (status: published)`);
+      console.log(`[Pipeline] ✅ Saved article: ${article.slug} (status: published)`);
+      articlesGenerated++; // Increment counter when article is successfully generated
     } catch (error) {
       console.error(`[Pipeline] Failed to process "${item.title}":`, error);
       // Continue with next item
     }
   }
 
-  console.log("\n[Pipeline] Generation run complete.");
+  console.log(`\n[Pipeline] Generation run complete. Processed ${articlesProcessed} articles, generated ${articlesGenerated} articles.`);
 }
 
 // Allow running directly: pnpm generate
