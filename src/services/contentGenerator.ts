@@ -32,40 +32,57 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     messages: [
       {
         role: "system",
-        content: `You are an authoritative thought leader writing for Appify Australia. Your goal is to create original, evergreen, SEO-optimized content.
+        content: `You are writing an article for Appify Australia. 
 
-🚨 CRITICAL - READ THIS FIRST:
-The RSS article title is: "${item.title}"
+🚨🚨🚨 CRITICAL - THIS IS THE MOST IMPORTANT INSTRUCTION 🚨🚨🚨
 
-YOU MUST WRITE ABOUT THIS EXACT TOPIC. DO NOT write generic content.
+THE RSS ARTICLE TITLE IS: "${item.title}"
+
+YOU MUST WRITE ABOUT THIS EXACT TOPIC. NOTHING ELSE.
 
 RSS Article Context:
 - Title: "${item.title}"
 - Summary: ${(item.contentSnippet || item.content || item.title || "").slice(0, 1000)}
 
-ABSOLUTE REQUIREMENTS:
-1. **TOPIC MATCHING IS MANDATORY**: 
+ABSOLUTE REQUIREMENTS - FOLLOW THESE EXACTLY:
+
+1. **TOPIC MATCHING - THIS IS MANDATORY AND NON-NEGOTIABLE**: 
+   - The article MUST be about: "${item.title}"
+   - If "${item.title}" is "Logitech's new Superstrike gaming mouse" → Write about gaming mice, hardware, peripherals, gaming equipment
    - If "${item.title}" is "Peter Steinberger joining OpenAI" → Write about executive moves, talent acquisition, company transitions
    - If "${item.title}" is "Data breach at company X" → Write about data breaches, security, protection
    - If "${item.title}" is "AI video generator" → Write about AI video generation
    - DO NOT write about "AI app development" unless "${item.title}" specifically mentions AI app development
-   - The blueprint below is ONLY a structural template - IGNORE its topic if it doesn't match "${item.title}"
+   - DO NOT write generic content about AI, software, or technology unless the title is specifically about those topics
+   - The blueprint below is IRRELEVANT if its topic doesn't match "${item.title}" - IGNORE the blueprint topic completely
 
-2. **HEADING ADAPTATION IS MANDATORY**:
-   - The blueprint headings are TEMPLATES showing the STRUCTURE (definition, how it works, implementation, risks, future)
-   - You MUST create NEW headings that match "${item.title}"
-   - Example: If blueprint says "What Is AI App Development?" but "${item.title}" is about a data breach, use "What Is a Data Breach?" or "Understanding Data Breaches"
-   - Example: If blueprint says "How AI App Development Works" but "${item.title}" is "Peter Steinberger joining OpenAI", use "What This Executive Move Means" or "Understanding Executive Transitions in Tech"
+2. **HEADING CREATION - CREATE NEW HEADINGS FOR "${item.title}"**:
+   - The blueprint headings are TEMPLATES showing STRUCTURE ONLY (definition, how it works, implementation, risks, future)
+   - You MUST create COMPLETELY NEW headings that match "${item.title}"
+   - Example: If "${item.title}" is "Logitech's new Superstrike gaming mouse":
+     * Section 1: "What Is the Logitech Superstrike Gaming Mouse?" (NOT "What Is AI App Development?")
+     * Section 2: "Key Features and Specifications" (NOT "How AI App Development Works")
+     * Section 3: "Gaming Performance and Customization Options" (NOT "Implementation Strategies")
+     * Section 4: "Comparison with Other Gaming Mice" (NOT "Risks and Trade-Offs")
+     * Section 5: "Future of Gaming Peripherals" (adapt from blueprint structure)
+   - Example: If "${item.title}" is "Peter Steinberger joining OpenAI":
+     * Section 1: "What This Executive Move Means" (NOT "What Is AI App Development?")
+     * Section 2: "The Context: OpenClaw and Peter Steinberger's Background" (NOT "How AI App Development Works")
+     * Section 3: "Implications for OpenAI's Strategy" (NOT "Implementation Strategies")
+     * Section 4: "Industry Impact and Future Outlook" (adapt from blueprint structure)
 
-3. **CONTENT MUST MATCH RSS TOPIC**:
+3. **CONTENT CREATION - WRITE ABOUT "${item.title}" ONLY**:
    - Write completely ORIGINAL content about "${item.title}"
    - Do NOT copy the RSS article - write your own analysis
-   - Use the blueprint's STRUCTURE (5 sections: definition, how it works, implementation, risks, future) but fill it with content about "${item.title}"
+   - Use the blueprint's STRUCTURE (5 sections) but fill EVERY section with content about "${item.title}"
+   - If "${item.title}" is about a gaming mouse, write about gaming mice, hardware, features, performance
+   - If "${item.title}" is about an executive move, write about executive transitions, company strategy, industry dynamics
+   - DO NOT write generic AI app development content unless the title is specifically about AI app development
 
-BLUEPRINT STRUCTURE (use ONLY for section organization, NOT for content):
-${blueprint.sections.map((s, i) => `  Section ${i + 1} structure: ${s.split(':')[0] || s} (adapt this heading to match "${item.title}")`).join('\n')}
+BLUEPRINT STRUCTURE (use ONLY for section organization, IGNORE the blueprint topic):
+${blueprint.sections.map((s, i) => `  Section ${i + 1} structure type: ${s.split(':')[0] || s} (create a NEW heading about "${item.title}" using this structure type)`).join('\n')}
 
-REMEMBER: The blueprint topic (${blueprint.description}) is IRRELEVANT if it doesn't match "${item.title}". Use only the STRUCTURE (5 sections), create your own headings and content about "${item.title}".`,
+🚨 FINAL REMINDER: The blueprint topic (${blueprint.description}) is COMPLETELY IRRELEVANT. Write about "${item.title}" only. Use the blueprint's STRUCTURE (5 sections), but create your own headings and content about "${item.title}".`,
       },
       {
         role: "user",
