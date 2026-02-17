@@ -65,7 +65,18 @@ CRITICAL RULES:
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
 6. **BASE STYLE** - All images must use this foundation:
    Modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold.
-7. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining the illustrated editorial style:
+7. **COLOR VARIETY** - Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images:
+   - Finance/Banking → green (money), gold (value), purple (premium), or blue-green combinations
+   - Gaming → vibrant colors (red, orange, purple, cyan), neon accents, dynamic color schemes
+   - Healthcare/Medical → soft greens, whites, light blues, or clinical color palettes
+   - AI research/Technical → varied palettes: purple/cyan for neural networks, orange/red for data, green for growth, yellow for innovation
+   - Automation/Workflow → orange (energy), green (efficiency), purple (automation), or multi-color process flows
+   - Hardware/Products → product-appropriate colors (not always blue), metallic tones, brand colors
+   - Media/Publishing → warm tones (orange, red), cool tones (teal, purple), or editorial color schemes
+   - Enterprise/Corporate → varied professional palettes (not just blue): deep purples, forest greens, warm grays
+   - Default → use colors that match the topic's mood and industry, avoid blue unless specifically appropriate
+   - Vary colors between articles - do not use the same blue palette for every image
+8. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining the illustrated editorial style:
    - Gaming → gaming hardware, controllers, immersive tech environments, vibrant colors, dynamic compositions (illustrated, not photographic)
    - Finance/Banking → fintech dashboards, financial data visualizations, payment interfaces, charts and graphs (illustrated, not photographic)
    - Healthcare/Medical → medical data screens, clinical interfaces, research visualizations, health tech (illustrated, not photographic)
@@ -75,11 +86,11 @@ CRITICAL RULES:
    - Hardware/Products → product illustrations, technical devices, precise details (illustrated, not photographic)
    - Automation/Workflow → workflow diagrams, process visualizations, automation interfaces, flow charts (illustrated, not photographic)
    - Default → technology, innovation, digital transformation (illustrated, not photographic)
-8. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
-9. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes or office environments with people.
-10. No text, no words, no letters - pure visual elements only
-11. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
-12. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery or people
+9. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
+10. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes or office environments with people.
+11. No text, no words, no letters - pure visual elements only
+12. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
+13. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery or people
 11. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
         },
         {
@@ -113,6 +124,8 @@ STEP 2: APPLY DOMAIN-SPECIFIC VISUAL CONCEPTS (all illustrated, not photographic
 BASE STYLE (applies to ALL domains):
 Modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold.
 
+COLOR REQUIREMENT: Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images. Vary colors between articles - use greens, purples, oranges, reds, golds, teals, or other colors that match the topic's mood and industry. Only use blue when it's specifically appropriate for the domain (e.g., ocean/water themes, specific brand colors). Finance can use green/gold, Gaming can use vibrant reds/oranges, Healthcare can use soft greens, AI research can use purple/orange/green combinations, etc.
+
 CRITICAL: NO HUMANS - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 
 All visuals must be ILLUSTRATED, not photographic. Even technical concepts should be rendered as editorial illustrations.
@@ -124,7 +137,8 @@ Generate a visual prompt that:
 1. Detects the domain from the title/description
 2. Applies domain-specific visual concepts (workflows for automation, dashboards for finance, etc.) - all ILLUSTRATED, not photographic
 3. Uses the base style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold
-4. Shows NO humans, people, or faces - only objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts`,
+4. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood
+5. Shows NO humans, people, or faces - only objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts`,
         },
       ],
     });
@@ -166,7 +180,7 @@ Generate a visual prompt that:
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a blog hero image representing: ${imageDescription}. Style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold. Illustrated, not photographic. No humans, no people, no faces. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. Style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold. Use diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic. Illustrated, not photographic. No humans, no people, no faces. No text, no words, just visual elements.`;
   }
 }
 
