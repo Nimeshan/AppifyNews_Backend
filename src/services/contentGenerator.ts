@@ -22,7 +22,15 @@ function getOpenAI(): OpenAI {
 function extractEntities(title: string): string[] {
   const entities: string[] = [];
   
-  // Extract capitalized words (likely company/product names)
+  // Extract ALL CAPS words (SRPO, GRPO, LLM, API, etc.)
+  const allCaps = title.match(/\b[A-Z]{2,}\b/g) || [];
+  entities.push(...allCaps);
+  
+  // Extract multi-word capitalized phrases (e.g., "Copilot Studio", "Kwai AI")
+  const multiCaps = title.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/g) || [];
+  entities.push(...multiCaps);
+  
+  // Extract single capitalized words (company/product names)
   const capitalized = title.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g) || [];
   entities.push(...capitalized.filter(e => e.length > 2));
   
@@ -34,24 +42,16 @@ function extractEntities(title: string): string[] {
   const numbers = title.match(/\d+x|\$\d+M?|\d+%|\d+\.\d+x/gi) || [];
   entities.push(...numbers);
   
-  // Extract acronyms (all caps words, 2+ chars)
-  const acronyms = title.match(/\b[A-Z]{2,}\b/g) || [];
-  entities.push(...acronyms);
-  
-  // Extract technology keywords (AI, ML, etc.)
-  const techKeywords = ['AI', 'ML', 'GPT', 'LLM', 'API', 'SDK', 'SaaS', 'PaaS', 'IaaS', 'GRPO', 'SRPO'];
-  techKeywords.forEach(keyword => {
-    if (title.includes(keyword)) {
-      entities.push(keyword);
-    }
-  });
+  // Extract hyphenated names
+  const hyphenated = title.match(/\b[A-Z][a-z]+-[A-Z][a-z]+/g) || [];
+  entities.push(...hyphenated);
   
   // Remove duplicates and common words
-  const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'be', 'can', 'with', 'via'];
+  const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'be', 'can', 'via', 'with', 'in', 'at'];
   return [...new Set(entities)]
     .filter(e => !commonWords.includes(e.toLowerCase()))
     .filter(e => e.length > 1)
-    .slice(0, 10); // Limit to top 10 entities
+    .slice(0, 6); // Limit to top 6 entities
 }
 
 export async function generateBlogContent(item: RSSItem): Promise<string> {
