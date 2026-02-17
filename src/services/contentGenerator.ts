@@ -105,6 +105,122 @@ function extractEntities(title: string): {
   };
 }
 
+/**
+ * Generate article outline first - ensures headings match the RSS article
+ */
+async function generateArticleOutline(
+  item: RSSItem, 
+  primaryEntity: string | null, 
+  keyEntities: string[],
+  articleContent: string
+): Promise<string> {
+  console.log(`[OpenAI] Generating article outline for: ${item.title}`);
+  
+  const primaryTopic = item.title;
+  
+  // Extract action from title
+  const actionMatch = item.title.match(/\b(pilots?|launches?|integrates?|acquires?|tests?|announces?|will be|is|are|out of stock|shortage|crisis)\b/i);
+  const titleAction = actionMatch ? actionMatch[1] : 'action';
+  
+  const response = await getOpenAI().chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.3, // Lower temperature for more structured output
+    max_tokens: 500,
+    messages: [
+      {
+        role: "system",
+        content: `You are creating an article outline for a technology news blog.
+
+RSS TITLE: "${primaryTopic}"
+PRIMARY_ENTITY: "${primaryEntity || primaryTopic}"
+KEY_ENTITIES: ${keyEntities.join(', ')}
+TITLE ACTION: "${titleAction}"
+
+CRITICAL REQUIREMENTS:
+1. Generate 4-6 H2 headings that MUST include PRIMARY_ENTITY "${primaryEntity || primaryTopic}" in at least 3 headings
+2. Each heading must relate to the SPECIFIC NEWS STORY in the title, not generic topics
+3. Headings must discuss the ACTION: "${titleAction}"
+4. FORBIDDEN: Generic headings like "Understanding AI", "Benefits of AI App Development", "AI App Development Strategies", "The Future of AI in App Development"
+
+OUTPUT FORMAT:
+Return ONLY a numbered list of headings in this exact format:
+1. <h2>HEADING TEXT HERE</h2>
+2. <h2>HEADING TEXT HERE</h2>
+3. <h2>HEADING TEXT HERE</h2>
+...
+
+Each heading must:
+- Include PRIMARY_ENTITY or a KEY_ENTITY
+- Be specific to the news story
+- NOT be generic AI content
+
+Example for "Debenhams pilots agentic AI commerce via PayPal integration":
+1. <h2>DEBENHAMS' AGENTIC AI COMMERCE PILOT PROGRAM</h2>
+2. <h2>PAYPAL INTEGRATION IN DEBENHAMS' CHECKOUT STRATEGY</h2>
+3. <h2>HOW DEBENHAMS IS TESTING AGENTIC AI IN RETAIL</h2>
+4. <h2>THE IMPACT OF DEBENHAMS' AI COMMERCE INITIATIVE</h2>
+
+Example for "Valve's Steam Deck OLED will be intermittently out of stock":
+1. <h2>VALVE'S STEAM DECK OLED STOCK SHORTAGE</h2>
+2. <h2>THE RAM CRISIS IMPACTING STEAM DECK SUPPLY CHAINS</h2>
+3. <h2>HOW VALVE IS MANAGING INTERMITTENT STOCK AVAILABILITY</h2>
+4. <h2>THE SUPPLY CHAIN CHALLENGES AFFECTING GAMING HARDWARE</h2>
+
+Return ONLY the numbered list, nothing else.`,
+      },
+      {
+        role: "user",
+        content: `RSS Article:
+Title: ${item.title}
+Content: ${articleContent.slice(0, 1500)}
+
+Generate the article outline with headings that match this specific news story.`,
+      },
+    ],
+  });
+
+  let outline = response.choices[0]?.message?.content || "";
+  
+  // Validate outline
+  if (primaryEntity) {
+    const entityCount = (outline.match(new RegExp(primaryEntity, 'gi')) || []).length;
+    if (entityCount < 3) {
+      console.warn(`[OpenAI] Outline validation: PRIMARY_ENTITY "${primaryEntity}" appears only ${entityCount} times. Regenerating...`);
+      // Retry once with stronger enforcement
+      const retryResponse = await getOpenAI().chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.2,
+        max_tokens: 500,
+        messages: [
+          {
+            role: "system",
+            content: `CRITICAL: The previous outline was rejected because PRIMARY_ENTITY "${primaryEntity}" did not appear in enough headings.
+
+You MUST create an outline where "${primaryEntity}" appears in at least 3 headings.
+
+RSS TITLE: "${primaryTopic}"
+PRIMARY_ENTITY: "${primaryEntity}"
+KEY_ENTITIES: ${keyEntities.join(', ')}
+
+Generate 4-6 headings where "${primaryEntity}" is in at least 3 headings.
+
+Format: Numbered list with <h2> tags.
+FORBIDDEN: Generic AI headings.`,
+          },
+          {
+            role: "user",
+            content: `Title: ${item.title}\n\nGenerate outline with "${primaryEntity}" in at least 3 headings.`,
+          },
+        ],
+      });
+      outline = retryResponse.choices[0]?.message?.content || outline;
+    }
+  }
+  
+  console.log(`[OpenAI] Generated outline:\n${outline}`);
+  return outline;
+}
+
 export async function generateBlogContent(item: RSSItem): Promise<string> {
   console.log(`[OpenAI] Generating blog for: ${item.title}`);
 
@@ -141,77 +257,59 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     articleContent = item.contentSnippet || item.content || "";
   }
 
+  // STEP 1: Generate outline first
+  const outline = await generateArticleOutline(item, primaryEntity, finalKeyEntities, articleContent);
+  
+  // Extract headings from outline
+  const headingMatches = outline.match(/<h2[^>]*>(.+?)<\/h2>/gi) || [];
+  const headings = headingMatches.map(h => h.replace(/<\/?h2[^>]*>/gi, '').trim());
+  
+  if (headings.length === 0) {
+    console.warn(`[OpenAI] No headings found in outline, falling back to direct generation`);
+  } else {
+    console.log(`[OpenAI] Using outline with ${headings.length} headings: ${headings.slice(0, 3).join(', ')}...`);
+  }
+
+  // STEP 2: Write the full article following the outline
   const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 0.4, // Lower temperature for controlled variance, less drift
+    temperature: 0.4,
     max_tokens: 2500,
     messages: [
       {
         role: "system",
-        content: `You are a senior AI industry analyst writing for Appify Australia.
+        content: `You are a senior technology industry analyst writing for Appify Australia.
 
-Your task is to rewrite the provided RSS article into an original, SEO-optimized thought-leadership blog strictly focused on the RSS title.
+Your task is to write an article following the EXACT outline provided below.
 
-PRIMARY_TOPIC: "${primaryTopic}"
+RSS TITLE: "${primaryTopic}"
 PRIMARY_ENTITY: "${primaryEntity || primaryTopic}"
-KEY_ENTITIES: ${finalKeyEntities.length > 0 ? finalKeyEntities.join(', ') : '[Extract from title]'}
+KEY_ENTITIES: ${finalKeyEntities.join(', ')}
 
-HARD FAILURE CONDITIONS (NON-NEGOTIABLE):
-- If PRIMARY_ENTITY does NOT appear in at least 3 section headings, the response is INVALID and must be rewritten.
-- If the article does NOT explicitly discuss the PRIMARY_ENTITY's action described in the title (e.g. pilot, launch, integration, acquisition), the response is INVALID.
-- If the article frames the topic as general "AI app development" instead of the PRIMARY_TOPIC, the response is INVALID.
-- If KEY_ENTITIES are not prominently featured throughout the article, the response is INVALID.
+CRITICAL INSTRUCTIONS:
+1. You MUST follow the provided outline EXACTLY - use the headings in the order given
+2. Write content for each heading that discusses the SPECIFIC NEWS STORY in the title
+3. PRIMARY_ENTITY "${primaryEntity || primaryTopic}" must appear in the introduction and throughout
+4. Each paragraph must relate to the specific news story, NOT generic AI topics
+5. FORBIDDEN: Generic "AI app development" content, generic AI benefits, how-to guides, definition sections
 
-ABSOLUTE BAN:
-- Do NOT frame this article as "AI in app development", "AI app development", "benefits of AI apps", or any generic AI explainer.
-- The article is about a SPECIFIC COMPANY ACTION, not AI generally.
-- Do NOT write generic headings like "Understanding AI", "Benefits of AI App Development", "The Future of AI in App Development".
-- Generic AI app development content is FORBIDDEN and will cause the response to be INVALID.
+OUTLINE TO FOLLOW:
+${outline}
 
-TITLE ACTION ENFORCEMENT:
-- Identify the ACTION in the title (e.g. pilots, launches, integrates, acquires, tests, announces).
-- Every major section must relate back to this ACTION.
-- The article must explicitly discuss WHAT the PRIMARY_ENTITY is doing (the action), WHY they're doing it, and HOW it works.
-- If the ACTION is not clearly discussed throughout the article, rewrite before finishing.
-
-ENTITY ANCHORING RULES:
-
-1. Before writing the full article, internally generate a structured H2 outline using KEY_ENTITIES. Ensure each H2 includes at least one KEY_ENTITY.
-2. PRIMARY_ENTITY "${primaryEntity || primaryTopic}" MUST appear in at least 3 H2 headings.
-3. PRIMARY_ENTITY "${primaryEntity || primaryTopic}" MUST appear in the introduction.
-4. At least 70% of paragraphs must reference a KEY_ENTITY.
-5. The introduction must reference at least two KEY_ENTITIES within the first 120 words.
-6. The article must remain strictly within the scope of PRIMARY_TOPIC.
-
-FORBIDDEN:
-- Generic "AI app development" filler.
-- Generic headings like "Understanding AI", "Benefits of AI App Development".
-- Standalone definition sections unless directly tied to KEY_ENTITIES.
-- Content unrelated to PRIMARY_TOPIC.
-- Headings that don't mention PRIMARY_ENTITY or other KEY_ENTITIES.
-
-SEO REQUIREMENTS:
-- 1200-1600 words.
-- Executive, analytical tone.
-- Include 4-6 contextual links (internal: /automation, /projects, /studio; plus credible external sources).
-- No meta sections or keyword lists.
+Write the full article now, using the headings from the outline in order. Each section should discuss the specific news story about ${primaryEntity || 'the company'} and ${finalKeyEntities.slice(0, 2).join(' and ')}.
 
 FORMATTING REQUIREMENTS:
-- Output HTML directly: Use <h2> for H2 headings, <h3> for H3 subheadings
-- ALL headings MUST use HTML tags: <h2>Heading Text</h2> or <h3>Subheading Text</h3>
-- Do NOT use markdown (## or ###) - use HTML tags only
-- Do NOT output plain text headings - they must be wrapped in <h2> or <h3> tags
+- Use the exact headings from the outline (already in <h2> format)
 - Paragraphs should be wrapped in <p> tags: <p>Paragraph text here.</p>
-- Example heading: <h2>DEBENHAMS' AGENTIC AI COMMERCE STRATEGY</h2>
+- Include 4-6 contextual links (internal: /automation, /projects, /studio; plus credible external sources)
+- 1200-1600 words total
+- Executive, analytical tone
 
-VALIDATION BEFORE COMPLETION:
-Before finishing, verify:
-1. PRIMARY_ENTITY appears in at least 3 headings
-2. The title's ACTION is explicitly discussed
-3. The article is NOT framed as generic "AI app development"
-4. KEY_ENTITIES are prominently featured
-
-If any validation fails, rewrite the article before completing.`,
+ABSOLUTE BAN:
+- Do NOT write generic "AI app development" content
+- Do NOT write about general AI benefits or strategies
+- Do NOT write definition sections unless directly about the news story
+- The article is about the SPECIFIC NEWS STORY, not AI generally`,
       },
       {
         role: "user",
@@ -220,7 +318,7 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 1500) || item.contentSnippet || item.content || 'No content available'}
 
-Write the final article now. Focus on the TITLE and KEY_ENTITIES, not the RSS content style.`,
+Write the full article following the outline. Each section should discuss the specific news story about ${primaryEntity || 'the company'} and ${finalKeyEntities.slice(0, 2).join(' and ')}.`,
       },
     ],
   });
