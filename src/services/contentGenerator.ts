@@ -377,6 +377,9 @@ Generate 4-6 specific headings about the news story.`,
   }
 
   // STEP 2: Write the full article following the outline
+  // Extract heading text for validation
+  const outlineHeadings = headings.map(h => h.replace(/<\/?h2[^>]*>/gi, '').trim());
+  
   const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o-mini",
     temperature: 0.4,
@@ -392,16 +395,22 @@ RSS TITLE: "${primaryTopic}"
 PRIMARY_ENTITY: "${primaryEntity || primaryTopic}"
 KEY_ENTITIES: ${finalKeyEntities.join(', ')}
 
-YOU MUST FOLLOW THIS OUTLINE EXACTLY:
+MANDATORY OUTLINE - YOU MUST USE THESE EXACT HEADINGS IN THIS EXACT ORDER:
 ${outline}
 
+CRITICAL INSTRUCTION: Copy the headings EXACTLY as shown above. Do NOT create new headings. Do NOT modify the heading text. Do NOT skip any headings.
+
+REQUIRED HEADINGS (copy exactly):
+${outlineHeadings.map((h, i) => `${i + 1}. <h2>${h}</h2>`).join('\n')}
+
 HARD REQUIREMENTS:
-1. Use the EXACT headings from the outline above in the order given
-2. Write about "${primaryEntity || 'the company'}" and the SPECIFIC NEWS STORY: "${primaryTopic}"
+1. Copy the EXACT headings from the outline above, in the exact order shown
+2. Write content under each heading about "${primaryEntity || 'the company'}" and the SPECIFIC NEWS STORY: "${primaryTopic}"
 3. PRIMARY_ENTITY "${primaryEntity || primaryTopic}" must appear in introduction and throughout
 4. Each paragraph must discuss the specific news story, NOT general AI topics
 
 ABSOLUTE FORBIDDEN (WILL CAUSE INVALID RESPONSE):
+- Creating your own headings (you MUST use the outline headings)
 - "AI App Development" as a topic
 - "Benefits of AI App Development"
 - "How to Implement AI App Development"
@@ -411,11 +420,12 @@ ABSOLUTE FORBIDDEN (WILL CAUSE INVALID RESPONSE):
 - Definition sections about AI app development
 
 IF YOU WRITE ABOUT GENERIC AI APP DEVELOPMENT INSTEAD OF "${primaryTopic}", YOUR RESPONSE IS INVALID.
+IF YOU DO NOT USE THE EXACT HEADINGS FROM THE OUTLINE, YOUR RESPONSE IS INVALID.
 
-Write the article now using the outline headings. Each section must discuss "${primaryEntity || 'the company'}" and the specific news story.
+Write the article now. Start with the first heading from the outline, then write content, then use the second heading, and so on.
 
 FORMATTING:
-- Use exact headings from outline (already in <h2> format)
+- Copy headings EXACTLY as shown in the outline (already in <h2> format)
 - Paragraphs: <p>text</p>
 - 1200-1600 words
 - Executive tone`,
@@ -427,7 +437,10 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 1500) || item.contentSnippet || item.content || 'No content available'}
 
-Write the full article following the outline. Each section should discuss the specific news story about ${primaryEntity || 'the company'} and ${finalKeyEntities.slice(0, 2).join(' and ')}.`,
+Write the full article. You MUST use these exact headings in this order:
+${outlineHeadings.map((h, i) => `${i + 1}. ${h}`).join('\n')}
+
+Do not create new headings. Copy the headings exactly as shown above.`,
       },
     ],
   });
@@ -446,14 +459,21 @@ Write the full article following the outline. Each section should discuss the sp
                         contentLower.includes('understanding ai'));
   
   const hasPrimaryEntity = primaryEntity ? contentLower.includes(primaryEntity.toLowerCase()) : true;
-  const outlineHeadingsInContent = headingMatches.filter(h => {
-    const headingText = h.replace(/<\/?h2[^>]*>/gi, '').trim().toLowerCase();
-    return contentLower.includes(headingText);
-  }).length;
+  
+  // Extract actual headings from generated content
+  const generatedHeadings = (content.match(/<h2[^>]*>(.+?)<\/h2>/gi) || []).map(h => 
+    h.replace(/<\/?h2[^>]*>/gi, '').trim().toLowerCase()
+  );
+  
+  // Check if outline headings are actually used as headings in the content
+  const outlineHeadingsLower = outlineHeadings.map(h => h.toLowerCase());
+  const matchingHeadings = outlineHeadingsLower.filter(outlineHeading => 
+    generatedHeadings.some(genHeading => genHeading === outlineHeading || genHeading.includes(outlineHeading) || outlineHeading.includes(genHeading))
+  ).length;
   
   // If content is generic or doesn't follow outline, regenerate
-  if (hasGenericAI || !hasPrimaryEntity || outlineHeadingsInContent < headingMatches.length / 2) {
-    console.warn(`[OpenAI] Content validation failed. Generic AI: ${hasGenericAI}, Has Entity: ${hasPrimaryEntity}, Outline Match: ${outlineHeadingsInContent}/${headingMatches.length}. Regenerating...`);
+  if (hasGenericAI || !hasPrimaryEntity || matchingHeadings < outlineHeadings.length * 0.7) {
+    console.warn(`[OpenAI] Content validation failed. Generic AI: ${hasGenericAI}, Has Entity: ${hasPrimaryEntity}, Outline Match: ${matchingHeadings}/${outlineHeadings.length}. Generated headings: ${generatedHeadings.slice(0, 3).join(', ')}... Regenerating...`);
     
     // Regenerate with even stronger enforcement
     const retryResponse = await getOpenAI().chat.completions.create({
@@ -468,22 +488,33 @@ Write the full article following the outline. Each section should discuss the sp
 You MUST write about the SPECIFIC NEWS STORY: "${primaryTopic}"
 
 PRIMARY_ENTITY: "${primaryEntity || primaryTopic}"
-OUTLINE TO FOLLOW:
+KEY_ENTITIES: ${finalKeyEntities.join(', ')}
+
+MANDATORY OUTLINE - COPY THESE EXACT HEADINGS:
 ${outline}
 
-ABSOLUTE REQUIREMENTS:
-1. Use EXACTLY the headings from the outline above
-2. Write about "${primaryEntity || 'the company'}" and the specific news story
-3. FORBIDDEN: "AI App Development", "Benefits of AI", "How to Implement AI", generic AI content
-4. The article is about "${primaryTopic}", NOT general AI topics
+REQUIRED HEADINGS (copy exactly, in this order):
+${outlineHeadings.map((h, i) => `${i + 1}. <h2>${h}</h2>`).join('\n')}
 
-If you write generic AI content, your response is INVALID.`,
+ABSOLUTE REQUIREMENTS:
+1. Copy the EXACT headings from the outline above, in the exact order shown
+2. Do NOT create new headings - only use the headings from the outline
+3. Write about "${primaryEntity || 'the company'}" and the specific news story
+4. FORBIDDEN: "AI App Development", "Benefits of AI", "How to Implement AI", generic AI content
+5. The article is about "${primaryTopic}", NOT general AI topics
+
+If you write generic AI content or create your own headings, your response is INVALID.`,
         },
         {
           role: "user",
           content: `Title: ${item.title}
+URL: ${item.link || 'N/A'}
+Content: ${articleContent.slice(0, 1500) || item.contentSnippet || item.content || 'No content available'}
 
-Write the article using the outline headings. Write about "${primaryEntity || 'the company'}" and the specific news story, NOT generic AI topics.`,
+Write the article. You MUST use these exact headings in this order:
+${outlineHeadings.map((h, i) => `${i + 1}. ${h}`).join('\n')}
+
+Copy the headings exactly. Do not create new headings. Write about ${primaryEntity || 'the company'} and the specific news story, NOT generic AI topics.`,
         },
       ],
     });
