@@ -15,8 +15,53 @@ function getOpenAI(): OpenAI {
  * Generate a blog post from an RSS article using OpenAI GPT-4o-mini.
  * Mirrors the Make.com GPT step with the same prompts.
  */
+/**
+ * Extract key entities from a title dynamically
+ * This makes the system universal - works for any article title
+ */
+function extractEntities(title: string): string[] {
+  const entities: string[] = [];
+  
+  // Extract capitalized words (likely company/product names)
+  const capitalized = title.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g) || [];
+  entities.push(...capitalized.filter(e => e.length > 2));
+  
+  // Extract quoted phrases
+  const quoted = title.match(/"([^"]+)"/g) || [];
+  entities.push(...quoted.map(q => q.replace(/"/g, '')));
+  
+  // Extract numbers with context (10x, $500M, etc.)
+  const numbers = title.match(/\d+x|\$\d+M?|\d+%|\d+\.\d+x/gi) || [];
+  entities.push(...numbers);
+  
+  // Extract acronyms (all caps words, 2+ chars)
+  const acronyms = title.match(/\b[A-Z]{2,}\b/g) || [];
+  entities.push(...acronyms);
+  
+  // Extract technology keywords (AI, ML, etc.)
+  const techKeywords = ['AI', 'ML', 'GPT', 'LLM', 'API', 'SDK', 'SaaS', 'PaaS', 'IaaS', 'GRPO', 'SRPO'];
+  techKeywords.forEach(keyword => {
+    if (title.includes(keyword)) {
+      entities.push(keyword);
+    }
+  });
+  
+  // Remove duplicates and common words
+  const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'be', 'can', 'with', 'via'];
+  return [...new Set(entities)]
+    .filter(e => !commonWords.includes(e.toLowerCase()))
+    .filter(e => e.length > 1)
+    .slice(0, 10); // Limit to top 10 entities
+}
+
 export async function generateBlogContent(item: RSSItem): Promise<string> {
   console.log(`[OpenAI] Generating blog for: ${item.title}`);
+
+  // Extract key entities from title dynamically
+  const keyEntities = extractEntities(item.title);
+  const primaryTopic = item.title;
+  
+  console.log(`[OpenAI] Extracted entities: ${keyEntities.join(', ')}`);
 
   // Fetch the actual article content from the URL (like Make.com does)
   let articleContent = "";
@@ -42,62 +87,44 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
     messages: [
       {
         role: "system",
-        content: `Write a blog for Appify Australia around the information in the article while reflecting on it as a thought leader: ${item.link || item.title}`,
+        content: `You are a senior AI industry analyst writing for Appify Australia.
+
+Your task: Rewrite the provided RSS article into an original, SEO-optimized thought-leadership blog that stays strictly focused on the RSS title topic.
+
+**ENTITY ANCHORING SYSTEM:**
+
+Before writing, you must extract and use KEY_ENTITIES from the RSS title:
+KEY_ENTITIES: ${keyEntities.length > 0 ? keyEntities.join(', ') : '[Extract from title]'}
+PRIMARY_TOPIC: "${primaryTopic}"
+
+**CRITICAL RULES:**
+1. Every H2 heading MUST contain at least one KEY_ENTITY
+2. Every paragraph MUST directly reference at least one KEY_ENTITY
+3. The article must stay within the scope of the PRIMARY_TOPIC
+4. If more than 20% of headings don't contain KEY_ENTITIES, the article fails
+5. If more than 25% of paragraphs don't mention KEY_ENTITIES, the article fails
+
+**FORBIDDEN:**
+- Generic headings like "Understanding AI", "Benefits of AI App Development", "The Future of AI"
+- Generic paragraphs about "AI app development" unless PRIMARY_TOPIC is specifically about that
+- Content that doesn't relate to KEY_ENTITIES or PRIMARY_TOPIC
+- Standalone definition sections
+- Generic filler content
+
+**REQUIRED:**
+- Introduction must mention at least 2 KEY_ENTITIES within first 120 words
+- All headings must include KEY_ENTITIES
+- All paragraphs must reference KEY_ENTITIES
+- Include 4-6 strategic internal/external links with natural anchor text
+- DO NOT include "Meta Title", "Meta Description", or "Topics" sections`,
       },
       {
         role: "assistant",
-        content: `Rule 1: Make sure to provide Headings for the relevant sections of the blog i.e., Introduction, Conclusion, etc.
-
-Rule 2: The blog length MUST be between 1200 - 1800 words.
-
-🚨🚨🚨 ABSOLUTELY CRITICAL - TOPIC MATCHING REQUIREMENTS 🚨🚨🚨
-
-**THE RSS TITLE IS: "${item.title}"**
-
-**YOU MUST WRITE ABOUT THIS EXACT TOPIC - NOTHING ELSE.**
-
-**FORBIDDEN CONTENT:**
-- DO NOT write generic "AI App Development" content
-- DO NOT use generic headings like "What is AI App Development?", "Benefits of AI App Development", "Definition of AI App Development"
-- DO NOT write about topics not mentioned in "${item.title}"
-
-**REQUIRED CONTENT:**
-1. **EXTRACT THE SPECIFIC TOPIC FROM "${item.title}":**
-   - If title is "Debenhams pilots agentic AI commerce via PayPal integration" → Write about Debenhams, their agentic AI commerce pilot, PayPal integration
-   - If title is "Banking AI at NatWest" → Write about NatWest's banking AI
-   - If title is "Data breach at Company X" → Write about that specific data breach
-   - If title is "New AI Video Generator" → Write about that specific video generator
-
-2. **HEADINGS MUST BE SPECIFIC TO "${item.title}":**
-   - Example for "Debenhams pilots agentic AI commerce via PayPal integration":
-     * ❌ WRONG: "What is AI App Development?"
-     * ✅ RIGHT: "Debenhams' Agentic AI Commerce Initiative"
-     * ❌ WRONG: "Benefits of AI App Development"
-     * ✅ RIGHT: "How Debenhams is Using Agentic AI with PayPal"
-     * ❌ WRONG: "Definition of AI App Development"
-     * ✅ RIGHT: "The PayPal Integration in Debenhams' AI Commerce Pilot"
-   - Extract key elements from "${item.title}" (company names, technologies, events) and use them in headings
-   - Every heading must relate directly to "${item.title}"
-
-3. **PARAGRAPHS MUST BE ABOUT "${item.title}":**
-   - Every paragraph must discuss the specific topic in "${item.title}"
-   - If "${item.title}" mentions "Debenhams" → Write about Debenhams specifically
-   - If "${item.title}" mentions "PayPal integration" → Write about PayPal integration
-   - If "${item.title}" mentions "agentic AI commerce" → Write about agentic AI commerce in this context
-   - DO NOT write generic paragraphs - every sentence must relate to "${item.title}"
-
-4. **SEO REQUIREMENTS:**
-   - Include 4-6 strategic links: internal links (<a href="/automation">automation services</a>) and external links (<a href="https://example.com">credible source</a>) with natural anchor text
-   - Use primary keyword from "${item.title}" in first 100 words
-   - Include long-tail keyword variations naturally (2-3 times each)
-   - DO NOT include "Meta Title", "Meta Description", or "Topics" sections - these are handled separately
-
-5. **CONTENT STRUCTURE:**
-   - Introduction: Explain what "${item.title}" is about and why it matters
-   - Body sections: Discuss specific aspects related to "${item.title}" (extract from title: company, technology, event, etc.)
-   - Conclusion: Summarize the implications of "${item.title}"
-
-Important: Focus on why this news matters, not just what happened and avoid marketing speak or SEO padding - look like human written content. Keep it clear, insightful, and relevant to people who care about Mobile apps, Technology, innovative software.`,
+        content: `Rule 1: Blog length MUST be between 1200-1800 words.
+Rule 2: Tone must be executive, analytical, strategic.
+Rule 3: Every heading and paragraph must anchor to KEY_ENTITIES.
+Rule 4: Structure: Introduction (mention 2+ KEY_ENTITIES in first 120 words) → Body sections (each with KEY_ENTITY in heading) → Conclusion.
+Rule 5: Validation: More than 20% of headings without KEY_ENTITIES = FAIL. More than 25% of paragraphs without KEY_ENTITIES = FAIL.`,
       },
       {
         role: "user",
@@ -106,41 +133,31 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 5000) || item.contentSnippet || item.content || 'No content available'}
 
-🚨🚨🚨 CRITICAL: The RSS title is "${item.title}"
+**EXTRACTED ENTITIES:**
+KEY_ENTITIES: ${keyEntities.join(', ')}
+PRIMARY_TOPIC: "${primaryTopic}"
 
-**YOU MUST WRITE ABOUT THIS EXACT TOPIC - NOTHING ELSE.**
+**YOUR TASK:**
+Write an original, SEO-optimized blog about "${primaryTopic}".
 
-**EXTRACT KEY ELEMENTS FROM THE TITLE:**
-- Company names (e.g., "Debenhams", "NatWest", "OpenAI")
-- Technologies (e.g., "agentic AI", "PayPal integration", "AI video generator")
-- Events (e.g., "pilots", "data breach", "merger")
-- Products (e.g., "gaming mouse", "commerce platform")
+**MANDATORY REQUIREMENTS:**
+1. Introduction: Mention at least 2 KEY_ENTITIES within first 120 words
+2. Headings: Every H2 must contain at least one KEY_ENTITY from the list above
+3. Paragraphs: Every paragraph must directly reference at least one KEY_ENTITY
+4. SEO: Include 4-6 strategic links (internal: /automation, /projects, /studio; external: credible sources)
+5. Forbidden: Generic "AI App Development" content, generic headings, content unrelated to KEY_ENTITIES
 
-**REQUIRED HEADINGS (based on "${item.title}"):**
-- Create headings that use the key elements from "${item.title}"
-- Example for "Debenhams pilots agentic AI commerce via PayPal integration":
-  * "Debenhams' Agentic AI Commerce Pilot Program"
-  * "PayPal Integration in Debenhams' AI Commerce Strategy"
-  * "How Agentic AI is Transforming Debenhams' E-commerce"
-  * "The Impact of PayPal Integration on Debenhams' AI Commerce"
-- DO NOT use generic headings like "What is AI App Development?" unless "${item.title}" is specifically about generic AI app development
+**HEADING EXAMPLES (based on KEY_ENTITIES):**
+${keyEntities.length > 0 ? `- Use KEY_ENTITIES in headings, e.g.:
+  * If KEY_ENTITIES include "Debenhams" and "PayPal" → "Debenhams' PayPal Integration Strategy"
+  * If KEY_ENTITIES include "GRPO" and "SRPO" → "GRPO vs SRPO: Efficiency Comparison"
+  * If KEY_ENTITIES include "Microsoft" and "Copilot Studio" → "Microsoft's Copilot Studio for Enterprise Automation"` : '- Extract entities from title and use them in headings'}
 
-**REQUIRED PARAGRAPHS:**
-- Every paragraph must discuss the specific topic in "${item.title}"
-- Mention the company/technology/event from the title throughout
-- If "${item.title}" mentions "Debenhams" → Write about Debenhams
-- If "${item.title}" mentions "PayPal" → Write about PayPal
-- If "${item.title}" mentions "agentic AI" → Write about agentic AI in this context
-- DO NOT write generic paragraphs about "AI app development" unless the title is specifically about that
+**VALIDATION:**
+- More than 20% of headings without KEY_ENTITIES = FAIL
+- More than 25% of paragraphs without KEY_ENTITIES = FAIL
 
-**FORBIDDEN:**
-- Generic "AI App Development" content
-- Generic headings like "What is AI App Development?", "Benefits of AI App Development"
-- Content that doesn't relate to "${item.title}"
-
-Use the article content above as context to understand what "${item.title}" is about, then write original, insightful content about that specific topic.
-
-Focus on why this news matters, not just what happened.`,
+Write the article now, ensuring every section anchors to the KEY_ENTITIES: ${keyEntities.join(', ')}.`,
       },
     ],
   });

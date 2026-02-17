@@ -1,5 +1,5 @@
 /**
- * Delete the Debenhams article and its image
+ * Delete the GRPO article and its image
  */
 
 require('dotenv').config();
@@ -43,21 +43,28 @@ function makeRequest(path, method = 'DELETE') {
 
 async function deleteArticle() {
   try {
-    const slug = "debenhams-pilots-agentic-ai-commerce-via-paypal-integration";
+    // Try different possible slugs
+    const possibleSlugs = [
+      "can-grpo-be-10x-efficient-kwai-ais-srpo-suggests-yes-with-srpo-in-ai-app-development",
+      "can-grpo-be-10x-efficient-kwai-ais-srpo-suggests-yes-with-ai-srpo",
+      "can-grpo-be-10x-efficient-kwai-ai-s-srpo-suggests-yes-with-ai-srpo"
+    ];
     
-    console.log(`🗑️  Deleting article: ${slug}\n`);
-    
-    const result = await makeRequest(`/api/admin/article/${slug}`, 'DELETE');
-    
-    if (result.status === 200) {
-      console.log('✅ Article deleted successfully!');
-      if (result.data.deleted && result.data.deleted.imageDeleted) {
-        console.log('✅ Image also deleted from Railbucket');
+    for (const slug of possibleSlugs) {
+      console.log(`🗑️  Trying to delete: ${slug}\n`);
+      const result = await makeRequest(`/api/admin/article/${slug}`, 'DELETE');
+      
+      if (result.status === 200) {
+        console.log('✅ Article deleted successfully!');
+        if (result.data.deleted && result.data.deleted.imageDeleted) {
+          console.log('✅ Image also deleted from Railbucket');
+        }
+        console.log(`\nDeleted: ${result.data.deleted.title}`);
+        return;
       }
-      console.log(`\nDeleted: ${result.data.deleted.title}`);
-    } else {
-      console.error(`❌ Failed to delete: ${result.data.error || result.data}`);
     }
+    
+    console.error('❌ Article not found with any of the attempted slugs');
   } catch (error) {
     console.error('❌ Error:', error.message);
   }
