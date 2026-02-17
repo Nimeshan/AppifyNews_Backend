@@ -61,7 +61,7 @@ CRITICAL RULES:
    - "Banking AI" → financial technology, banking systems, fintech interfaces
 3. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
 4. Focus on concrete visual elements (objects, scenes, concepts) - not abstract ideas
-5. Style: professional, modern, clean, minimalist, futuristic, suitable for a technology blog
+5. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional
 6. No text, no words, no letters - pure visual elements only
 7. Keep it concise (50-100 words max)
 8. Make it specific to the article - extract the unique visual concept from the title and description
@@ -72,10 +72,12 @@ CRITICAL RULES:
           role: "user",
           content: `Create an image generation prompt for this article. Extract the UNIQUE visual concept from the title and description - do NOT use generic AI/brain imagery unless the article is specifically about neural networks.
 
+STYLE: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional.
+
 Article Context:
 ${context}
 
-Generate a specific visual prompt that matches the unique topic of this article.`,
+Generate a specific visual prompt that matches the unique topic of this article with the illustrated corporate style.`,
         },
       ],
     });
@@ -117,7 +119,7 @@ Generate a specific visual prompt that matches the unique topic of this article.
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a professional, modern blog hero image representing: ${imageDescription}. Style: clean, minimalist, futuristic, suitable for a technology blog. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. Style: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional. No text, no words, just visual elements.`;
   }
 }
 
