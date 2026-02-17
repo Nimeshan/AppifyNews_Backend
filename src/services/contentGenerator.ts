@@ -50,45 +50,51 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
 
 Rule 2: The blog length MUST be between 1200 - 1800 words.
 
-🚨 CRITICAL - TOPIC MATCHING & SEO REQUIREMENTS:
+🚨🚨🚨 ABSOLUTELY CRITICAL - TOPIC MATCHING REQUIREMENTS 🚨🚨🚨
 
-1. **YOU MUST WRITE ABOUT THE EXACT TOPIC IN THE RSS TITLE**: "${item.title}"
-   - If the title is "Banking AI App Development in Multiple Business Functions at NatWest" → Write about NatWest's banking AI implementation, banking functions, NatWest's specific use cases
-   - If the title is "Data breach at Company X" → Write about that specific data breach, security implications, protection measures
-   - If the title is "Peter Steinberger joining OpenAI" → Write about executive moves, talent acquisition, company transitions
-   - DO NOT write generic "AI App Development" content unless the title is specifically about generic AI app development
-   - The article MUST be about "${item.title}" - nothing else
+**THE RSS TITLE IS: "${item.title}"**
 
-2. **HEADINGS MUST MATCH THE SPECIFIC TOPIC & INCLUDE KEYWORDS**:
-   - Create headings that are specific to "${item.title}" and include relevant keywords
-   - Example: If title is "Banking AI App Development at NatWest":
-     * Use: "NatWest's AI Implementation Strategy in Banking" (NOT "Definition of AI App Development")
-     * Use: "Banking Functions Enhanced by AI at NatWest" (NOT "Benefits of AI App Development")
-     * Use: "The Impact of AI on NatWest's Operations" (NOT "How AI App Development Works")
-   - Example: If title is "Data breach at Company X":
-     * Use: "Understanding the Data Breach Incident" (NOT "Definition of AI App Development")
-     * Use: "How the Breach Occurred" (NOT "Benefits of AI App Development")
-   - DO NOT use generic headings like "Definition of AI App Development", "Benefits of AI App Development" unless the title is specifically about generic AI app development
-   - Include primary keywords naturally in 2-3 headings
+**YOU MUST WRITE ABOUT THIS EXACT TOPIC - NOTHING ELSE.**
 
-3. **PARAGRAPHS MUST MATCH THE SPECIFIC TOPIC**:
-   - Every paragraph must be about "${item.title}"
-   - If the title mentions "NatWest" and "banking", write about NatWest's banking AI implementation
-   - If the title mentions a specific company, write about that company's specific situation
-   - If the title mentions a specific event, write about that event
-   - DO NOT write generic paragraphs about "AI app development" unless the title is specifically about generic AI app development
-   - Use the article content as context to understand what "${item.title}" is about, then write original content about that specific topic
-   - Use primary keyword naturally throughout (12-32 times in 1200-1600 words)
+**FORBIDDEN CONTENT:**
+- DO NOT write generic "AI App Development" content
+- DO NOT use generic headings like "What is AI App Development?", "Benefits of AI App Development", "Definition of AI App Development"
+- DO NOT write about topics not mentioned in "${item.title}"
 
-4. **SEO REQUIREMENTS**:
+**REQUIRED CONTENT:**
+1. **EXTRACT THE SPECIFIC TOPIC FROM "${item.title}":**
+   - If title is "Debenhams pilots agentic AI commerce via PayPal integration" → Write about Debenhams, their agentic AI commerce pilot, PayPal integration
+   - If title is "Banking AI at NatWest" → Write about NatWest's banking AI
+   - If title is "Data breach at Company X" → Write about that specific data breach
+   - If title is "New AI Video Generator" → Write about that specific video generator
+
+2. **HEADINGS MUST BE SPECIFIC TO "${item.title}":**
+   - Example for "Debenhams pilots agentic AI commerce via PayPal integration":
+     * ❌ WRONG: "What is AI App Development?"
+     * ✅ RIGHT: "Debenhams' Agentic AI Commerce Initiative"
+     * ❌ WRONG: "Benefits of AI App Development"
+     * ✅ RIGHT: "How Debenhams is Using Agentic AI with PayPal"
+     * ❌ WRONG: "Definition of AI App Development"
+     * ✅ RIGHT: "The PayPal Integration in Debenhams' AI Commerce Pilot"
+   - Extract key elements from "${item.title}" (company names, technologies, events) and use them in headings
+   - Every heading must relate directly to "${item.title}"
+
+3. **PARAGRAPHS MUST BE ABOUT "${item.title}":**
+   - Every paragraph must discuss the specific topic in "${item.title}"
+   - If "${item.title}" mentions "Debenhams" → Write about Debenhams specifically
+   - If "${item.title}" mentions "PayPal integration" → Write about PayPal integration
+   - If "${item.title}" mentions "agentic AI commerce" → Write about agentic AI commerce in this context
+   - DO NOT write generic paragraphs - every sentence must relate to "${item.title}"
+
+4. **SEO REQUIREMENTS:**
    - Include 4-6 strategic links: internal links (<a href="/automation">automation services</a>) and external links (<a href="https://example.com">credible source</a>) with natural anchor text
-   - Use primary keyword in first 100 words
+   - Use primary keyword from "${item.title}" in first 100 words
    - Include long-tail keyword variations naturally (2-3 times each)
    - DO NOT include "Meta Title", "Meta Description", or "Topics" sections - these are handled separately
 
-5. **CONTENT STRUCTURE**:
+5. **CONTENT STRUCTURE:**
    - Introduction: Explain what "${item.title}" is about and why it matters
-   - Body sections: Discuss specific aspects related to "${item.title}" (not generic AI app development)
+   - Body sections: Discuss specific aspects related to "${item.title}" (extract from title: company, technology, event, etc.)
    - Conclusion: Summarize the implications of "${item.title}"
 
 Important: Focus on why this news matters, not just what happened and avoid marketing speak or SEO padding - look like human written content. Keep it clear, insightful, and relevant to people who care about Mobile apps, Technology, innovative software.`,
@@ -100,28 +106,37 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 5000) || item.contentSnippet || item.content || 'No content available'}
 
-🚨 CRITICAL: Write a blog post about "${item.title}". 
+🚨🚨🚨 CRITICAL: The RSS title is "${item.title}"
 
-YOU MUST WRITE ABOUT THE EXACT TOPIC IN THE TITLE - not generic content.
+**YOU MUST WRITE ABOUT THIS EXACT TOPIC - NOTHING ELSE.**
 
-**TOPIC-SPECIFIC REQUIREMENTS:**
-- Extract the specific topic, company, event, or subject from "${item.title}"
-- If the title mentions a specific company (e.g., "NatWest", "OpenAI", "Google"), write about that company's specific situation
-- If the title mentions a specific event (e.g., "data breach", "merger", "launch"), write about that specific event
-- If the title mentions a specific technology/product (e.g., "AI video generator", "gaming mouse"), write about that specific technology/product
-- Create headings that match the specific topic in "${item.title}" - NOT generic headings
-- Every paragraph must be about the specific topic in "${item.title}"
+**EXTRACT KEY ELEMENTS FROM THE TITLE:**
+- Company names (e.g., "Debenhams", "NatWest", "OpenAI")
+- Technologies (e.g., "agentic AI", "PayPal integration", "AI video generator")
+- Events (e.g., "pilots", "data breach", "merger")
+- Products (e.g., "gaming mouse", "commerce platform")
 
-**HEADING EXAMPLES:**
-- If title is "Banking AI at NatWest" → Use "NatWest's Banking AI Strategy" (NOT "What is AI App Development?")
-- If title is "Data breach at Company X" → Use "Understanding the Data Breach at Company X" (NOT "Benefits of AI")
-- If title is "New AI Video Generator" → Use "How the New AI Video Generator Works" (NOT "What is AI App Development?")
-- If title is generic "AI App Development" → Then use generic headings
+**REQUIRED HEADINGS (based on "${item.title}"):**
+- Create headings that use the key elements from "${item.title}"
+- Example for "Debenhams pilots agentic AI commerce via PayPal integration":
+  * "Debenhams' Agentic AI Commerce Pilot Program"
+  * "PayPal Integration in Debenhams' AI Commerce Strategy"
+  * "How Agentic AI is Transforming Debenhams' E-commerce"
+  * "The Impact of PayPal Integration on Debenhams' AI Commerce"
+- DO NOT use generic headings like "What is AI App Development?" unless "${item.title}" is specifically about generic AI app development
 
-**DO NOT:**
-- Write generic "AI App Development" content unless the title is specifically about generic AI app development
-- Use generic headings like "What is AI App Development?" unless the title is about generic AI app development
-- Write about topics not mentioned in "${item.title}"
+**REQUIRED PARAGRAPHS:**
+- Every paragraph must discuss the specific topic in "${item.title}"
+- Mention the company/technology/event from the title throughout
+- If "${item.title}" mentions "Debenhams" → Write about Debenhams
+- If "${item.title}" mentions "PayPal" → Write about PayPal
+- If "${item.title}" mentions "agentic AI" → Write about agentic AI in this context
+- DO NOT write generic paragraphs about "AI app development" unless the title is specifically about that
+
+**FORBIDDEN:**
+- Generic "AI App Development" content
+- Generic headings like "What is AI App Development?", "Benefits of AI App Development"
+- Content that doesn't relate to "${item.title}"
 
 Use the article content above as context to understand what "${item.title}" is about, then write original, insightful content about that specific topic.
 
