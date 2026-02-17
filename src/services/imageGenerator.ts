@@ -69,6 +69,13 @@ CRITICAL RULES:
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
 6. **STRICT VISUAL STYLE** - All images must use this EXACT foundation:
    Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
+6a. **DEVICES ARE ALLOWED** - You may include devices (smartphones, tablets, laptops, computers, monitors) but they MUST be:
+   - Flat 2D vector illustrations with simplified geometric shapes
+   - Clean rectangular shapes with rounded corners (not photorealistic)
+   - No realistic reflections, shadows, or 3D depth
+   - Screens can show simplified UI elements, icons, or abstract patterns (flat vector style)
+   - Devices should be stylized, not photorealistic
+   - Example: A flat rectangle with rounded corners representing a phone, with simple geometric shapes inside representing UI elements
 7. **COLOR VARIETY** - Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images:
    - Finance/Banking → green (money), gold (value), purple (premium), or blue-green combinations
    - Gaming → vibrant colors (red, orange, purple, cyan), neon accents, dynamic color schemes
@@ -81,16 +88,16 @@ CRITICAL RULES:
    - Default → use colors that match the topic's mood and industry, avoid blue unless specifically appropriate
    - Vary colors between articles - do not use the same blue palette for every image
 8. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining STRICT 2D vector style:
-   - Gaming → gaming hardware, controllers, game elements, vibrant colors, dynamic compositions (flat 2D vector, simplified geometric shapes)
-   - Finance/Banking → financial concepts, payment flows, currency elements, growth indicators, banking infrastructure (flat 2D vector, NOT realistic dashboards)
-   - Healthcare/Medical → medical concepts, health symbols, research elements, clinical tools (flat 2D vector, NOT realistic screens)
-   - Enterprise/Corporate → corporate concepts, business elements, office objects (flat 2D vector, NO business meeting scenes)
-   - AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts (flat 2D vector, NOT realistic screens or dashboards)
-   - Media/Publishing → editorial concepts, publishing elements, content creation tools (flat 2D vector, NO realistic newsroom scenes)
-   - Hardware/Products → product illustrations, technical devices, precise details (flat 2D vector, simplified geometric shapes)
-   - Automation/Workflow → workflow diagrams, process flows, automation concepts (flat 2D vector, clean outlines)
-   - Default → technology concepts, innovation symbols, digital transformation metaphors (flat 2D vector, simplified geometric shapes)
-9. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
+   - Gaming → gaming hardware, controllers, game elements, devices with game interfaces, vibrant colors, dynamic compositions (flat 2D vector, simplified geometric shapes)
+   - Finance/Banking → financial concepts, payment flows, currency elements, growth indicators, banking infrastructure, devices showing payment interfaces (flat 2D vector, NOT realistic dashboards)
+   - Healthcare/Medical → medical concepts, health symbols, research elements, clinical tools, devices with health apps (flat 2D vector, NOT realistic screens)
+   - Enterprise/Corporate → corporate concepts, business elements, office objects, devices with business interfaces (flat 2D vector, NO business meeting scenes)
+   - AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts, devices with AI interfaces (flat 2D vector, NOT realistic screens or dashboards)
+   - Media/Publishing → editorial concepts, publishing elements, content creation tools, devices with content interfaces (flat 2D vector, NO realistic newsroom scenes)
+   - Hardware/Products → product illustrations, technical devices, precise details, devices as products (flat 2D vector, simplified geometric shapes)
+   - Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, clean outlines)
+   - Default → technology concepts, innovation symbols, digital transformation metaphors, devices when relevant (flat 2D vector, simplified geometric shapes)
+9. **NO HUMANS, BUT DEVICES ALLOWED** - Do not show people, faces, or human figures. Devices (smartphones, tablets, laptops, computers, monitors) are allowed but must be flat 2D vector illustrations with simplified geometric shapes, not photorealistic. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 10. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes, office environments, realistic dashboards, or network diagrams. Each article should have a UNIQUE visual concept based on its specific topic and action. Do NOT default to "dashboard on screen" or "network diagram" for similar topics.
 11. No text, no words, no letters - pure visual elements only
 12. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
@@ -115,22 +122,23 @@ STEP 1: DETECT THE DOMAIN from the article title/description:
 - Otherwise → Default domain
 
 STEP 2: APPLY DOMAIN-SPECIFIC VISUAL CONCEPTS (all flat 2D vector graphic style):
-- Media/Publishing → editorial concepts, publishing elements, content creation tools (flat 2D vector, simplified geometric shapes, NO realistic newsroom scenes)
-- Finance/Banking → financial concepts, payment flows, currency elements, growth indicators (flat 2D vector, simplified geometric shapes, NOT realistic dashboards)
-- Gaming → gaming hardware, controllers, game elements, vibrant colors (flat 2D vector, simplified geometric shapes)
-- Healthcare/Medical → medical concepts, health symbols, research elements (flat 2D vector, simplified geometric shapes, NOT realistic screens)
-- Enterprise/Corporate → corporate concepts, business elements, office objects (flat 2D vector, simplified geometric shapes, NO business meeting scenes)
-- AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts (flat 2D vector, simplified geometric shapes, NOT realistic screens or dashboards)
-- Hardware/Products → product illustrations, technical devices, precise details (flat 2D vector, simplified geometric shapes)
-- Automation/Workflow → workflow diagrams, process flows, automation concepts (flat 2D vector, clean outlines)
-- Default → technology concepts, innovation symbols, digital transformation metaphors (flat 2D vector, simplified geometric shapes)
+- Devices (smartphones, tablets, laptops) can be included when relevant to the article topic, but MUST be flat 2D vector illustrations: simplified rectangular shapes with rounded corners, no photorealistic rendering, no 3D depth, no realistic shadows or reflections. Screens can show simplified UI elements or abstract patterns in flat vector style.
+- Media/Publishing → editorial concepts, publishing elements, content creation tools, devices with simplified UI (flat 2D vector, simplified geometric shapes, NO realistic newsroom scenes)
+- Finance/Banking → financial concepts, payment flows, currency elements, growth indicators, devices showing payment interfaces (flat 2D vector, simplified geometric shapes, NOT realistic dashboards)
+- Gaming → gaming hardware, controllers, game elements, devices with game interfaces, vibrant colors (flat 2D vector, simplified geometric shapes)
+- Healthcare/Medical → medical concepts, health symbols, research elements, devices with health apps (flat 2D vector, simplified geometric shapes, NOT realistic screens)
+- Enterprise/Corporate → corporate concepts, business elements, office objects, devices with business interfaces (flat 2D vector, simplified geometric shapes, NO business meeting scenes)
+- AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts, devices with AI interfaces (flat 2D vector, simplified geometric shapes, NOT realistic screens or dashboards)
+- Hardware/Products → product illustrations, technical devices, precise details, devices as products (flat 2D vector, simplified geometric shapes)
+- Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, clean outlines)
+- Default → technology concepts, innovation symbols, digital transformation metaphors, devices when relevant (flat 2D vector, simplified geometric shapes)
 
 STRICT VISUAL STYLE (applies to ALL domains - MANDATORY):
 Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
 
 COLOR REQUIREMENT: Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images. Vary colors between articles - use greens, purples, oranges, reds, golds, teals, or other colors that match the topic's mood and industry. Only use blue when it's specifically appropriate for the domain (e.g., ocean/water themes, specific brand colors). Finance can use green/gold, Gaming can use vibrant reds/oranges, Healthcare can use soft greens, AI research can use purple/orange/green combinations, etc.
 
-CRITICAL: NO HUMANS - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
+CRITICAL: NO HUMANS, BUT DEVICES ALLOWED - Do not show people, faces, or human figures. Devices (smartphones, tablets, laptops, computers, monitors) are allowed but must be flat 2D vector illustrations with simplified geometric shapes, not photorealistic. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 
 All visuals must be flat 2D vector graphic compositions using simplified geometric shapes only. No 3D rendering, no isometric perspective, no depth-of-field, no realistic lighting, no volumetric shading, no photorealistic objects, no cinematic glow effects, no textured surfaces. Design should resemble a modern tech editorial magazine cover graphic: clean, bold, minimal, symbolic. Orthographic front-facing view only.
 
@@ -142,7 +150,7 @@ Generate a visual prompt that:
 2. Applies domain-specific visual concepts using clear conceptual metaphors - all flat 2D vector graphic style, NOT realistic dashboards, screens, or business scenes
 3. Uses the STRICT VISUAL STYLE: Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
 4. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood
-5. Shows NO humans, people, or faces - only objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts`,
+5. Shows NO humans, people, or faces - devices (smartphones, tablets, laptops) are allowed but must be flat 2D vector illustrations with simplified geometric shapes, not photorealistic. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts`,
         },
       ],
     });
