@@ -48,36 +48,39 @@ async function generateImagePrompt(title: string, description?: string, topic?: 
       messages: [
         {
           role: "system",
-          content: `You are an expert at creating image generation prompts. Generate a detailed, visual description for a blog hero image that matches the article content.
+          content: `You are an expert at creating image generation prompts. Generate a detailed, visual description for a blog hero image that matches the article heading/title EXACTLY.
+
+CRITICAL PRIORITY: The image MUST visually represent the specific article heading/title. Extract the exact visual concept from the heading.
 
 CRITICAL RULES:
-1. **Be SPECIFIC to the article topic** - Do NOT use generic AI/brain imagery unless the article is specifically about neural networks or brain-like AI
-2. **Extract the UNIQUE visual concept** from the title:
+1. **MATCH THE ARTICLE HEADING** - The image must visually represent what the article heading describes. If heading is "Valve's Steam Deck OLED stock shortage", show Steam Deck hardware, stock/supply chain visuals, not generic tech.
+2. **Be SPECIFIC to the article topic** - Do NOT use generic AI/brain imagery unless the article is specifically about neural networks or brain-like AI
+3. **Extract the UNIQUE visual concept** from the title/heading:
+   - "Valve's Steam Deck OLED stock shortage" → Steam Deck handheld device, supply chain, stock availability visuals
+   - "Debenhams pilots agentic AI commerce" → retail commerce, payment integration, AI-powered shopping
    - "Anomalies in Time-Series Data" → data charts, graphs, anomaly detection visualization, time-series plots
    - "Multiple GPUs" → GPU hardware, parallel processing architecture, computer chips, server racks
-   - "Explainable AI" → decision trees, transparent models, interpretability diagrams, flowchart visualization
-   - "Point-to-Point Operations" → network connections, communication patterns, data flow diagrams
-   - "Data Breach" → cybersecurity shields, locks, security systems
    - "Banking AI" → financial technology, banking systems, fintech interfaces
-3. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
-4. Focus on concrete visual elements (objects, scenes, concepts) - not abstract ideas
-5. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional
-6. No text, no words, no letters - pure visual elements only
-7. Keep it concise (50-100 words max)
-8. Make it specific to the article - extract the unique visual concept from the title and description
-9. If it's about a specific company or person, focus on the concept/industry, not the person/company name
+4. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
+5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
+6. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional
+7. No text, no words, no letters - pure visual elements only
+8. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
+9. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery
 10. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
         },
         {
           role: "user",
-          content: `Create an image generation prompt for this article. Extract the UNIQUE visual concept from the title and description - do NOT use generic AI/brain imagery unless the article is specifically about neural networks.
+          content: `Create an image generation prompt that MUST visually match the article heading/title.
+
+CRITICAL: The image must represent what the article heading describes. Extract the exact visual concept from the heading.
 
 STYLE: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional.
 
 Article Context:
 ${context}
 
-Generate a specific visual prompt that matches the unique topic of this article with the illustrated corporate style.`,
+Generate a visual prompt that directly matches the article heading with the illustrated corporate style. If the heading mentions a specific product, action, or concept, the image must show that.`,
         },
       ],
     });
