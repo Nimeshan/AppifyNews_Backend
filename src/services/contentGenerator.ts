@@ -82,49 +82,39 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
 
   const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 1, // Match Make.com temperature
-    max_tokens: 2500, // Match Make.com max_tokens
+    temperature: 0.4, // Lower temperature for controlled variance, less drift
+    max_tokens: 2500,
     messages: [
       {
         role: "system",
         content: `You are a senior AI industry analyst writing for Appify Australia.
 
-Your task: Rewrite the provided RSS article into an original, SEO-optimized thought-leadership blog that stays strictly focused on the RSS title topic.
+Your task is to rewrite the provided RSS article into an original, SEO-optimized thought-leadership blog strictly focused on the RSS title.
 
-**ENTITY ANCHORING SYSTEM:**
-
-Before writing, you must extract and use KEY_ENTITIES from the RSS title:
-KEY_ENTITIES: ${keyEntities.length > 0 ? keyEntities.join(', ') : '[Extract from title]'}
 PRIMARY_TOPIC: "${primaryTopic}"
+KEY_ENTITIES: ${keyEntities.length > 0 ? keyEntities.join(', ') : '[Extract from title]'}
 
-**CRITICAL RULES:**
-1. Every H2 heading MUST contain at least one KEY_ENTITY
-2. Every paragraph MUST directly reference at least one KEY_ENTITY
-3. The article must stay within the scope of the PRIMARY_TOPIC
-4. If more than 20% of headings don't contain KEY_ENTITIES, the article fails
-5. If more than 25% of paragraphs don't mention KEY_ENTITIES, the article fails
+ENTITY ANCHORING RULES:
 
-**FORBIDDEN:**
-- Generic headings like "Understanding AI", "Benefits of AI App Development", "The Future of AI"
-- Generic paragraphs about "AI app development" unless PRIMARY_TOPIC is specifically about that
-- Content that doesn't relate to KEY_ENTITIES or PRIMARY_TOPIC
-- Standalone definition sections
-- Generic filler content
+1. Generate an outline first (internally).
+2. Every H2 heading must contain at least one KEY_ENTITY.
+3. At least 70% of paragraphs must reference a KEY_ENTITY.
+4. The introduction must reference at least two KEY_ENTITIES within the first 120 words.
+5. The article must remain strictly within the scope of PRIMARY_TOPIC.
 
-**REQUIRED:**
-- Introduction must mention at least 2 KEY_ENTITIES within first 120 words
-- All headings must include KEY_ENTITIES
-- All paragraphs must reference KEY_ENTITIES
-- Include 4-6 strategic internal/external links with natural anchor text
-- DO NOT include "Meta Title", "Meta Description", or "Topics" sections`,
-      },
-      {
-        role: "assistant",
-        content: `Rule 1: Blog length MUST be between 1200-1800 words.
-Rule 2: Tone must be executive, analytical, strategic.
-Rule 3: Every heading and paragraph must anchor to KEY_ENTITIES.
-Rule 4: Structure: Introduction (mention 2+ KEY_ENTITIES in first 120 words) → Body sections (each with KEY_ENTITY in heading) → Conclusion.
-Rule 5: Validation: More than 20% of headings without KEY_ENTITIES = FAIL. More than 25% of paragraphs without KEY_ENTITIES = FAIL.`,
+FORBIDDEN:
+- Generic "AI app development" filler.
+- Generic headings like "Understanding AI", "Benefits of AI App Development".
+- Standalone definition sections unless directly tied to KEY_ENTITIES.
+- Content unrelated to PRIMARY_TOPIC.
+
+SEO REQUIREMENTS:
+- 1200-1600 words.
+- Executive, analytical tone.
+- Include 4-6 contextual links (internal: /automation, /projects, /studio; plus credible external sources).
+- No meta sections or keyword lists.
+
+If the article drifts from PRIMARY_TOPIC or becomes generic, correct it before finishing.`,
       },
       {
         role: "user",
@@ -133,31 +123,7 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 5000) || item.contentSnippet || item.content || 'No content available'}
 
-**EXTRACTED ENTITIES:**
-KEY_ENTITIES: ${keyEntities.join(', ')}
-PRIMARY_TOPIC: "${primaryTopic}"
-
-**YOUR TASK:**
-Write an original, SEO-optimized blog about "${primaryTopic}".
-
-**MANDATORY REQUIREMENTS:**
-1. Introduction: Mention at least 2 KEY_ENTITIES within first 120 words
-2. Headings: Every H2 must contain at least one KEY_ENTITY from the list above
-3. Paragraphs: Every paragraph must directly reference at least one KEY_ENTITY
-4. SEO: Include 4-6 strategic links (internal: /automation, /projects, /studio; external: credible sources)
-5. Forbidden: Generic "AI App Development" content, generic headings, content unrelated to KEY_ENTITIES
-
-**HEADING EXAMPLES (based on KEY_ENTITIES):**
-${keyEntities.length > 0 ? `- Use KEY_ENTITIES in headings, e.g.:
-  * If KEY_ENTITIES include "Debenhams" and "PayPal" → "Debenhams' PayPal Integration Strategy"
-  * If KEY_ENTITIES include "GRPO" and "SRPO" → "GRPO vs SRPO: Efficiency Comparison"
-  * If KEY_ENTITIES include "Microsoft" and "Copilot Studio" → "Microsoft's Copilot Studio for Enterprise Automation"` : '- Extract entities from title and use them in headings'}
-
-**VALIDATION:**
-- More than 20% of headings without KEY_ENTITIES = FAIL
-- More than 25% of paragraphs without KEY_ENTITIES = FAIL
-
-Write the article now, ensuring every section anchors to the KEY_ENTITIES: ${keyEntities.join(', ')}.`,
+Write the final article now.`,
       },
     ],
   });
