@@ -50,7 +50,7 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
 
 Rule 2: The blog length MUST be between 1200 - 1800 words.
 
-🚨 CRITICAL - TOPIC MATCHING REQUIREMENTS:
+🚨 CRITICAL - TOPIC MATCHING & SEO REQUIREMENTS:
 
 1. **YOU MUST WRITE ABOUT THE EXACT TOPIC IN THE RSS TITLE**: "${item.title}"
    - If the title is "Banking AI App Development in Multiple Business Functions at NatWest" → Write about NatWest's banking AI implementation, banking functions, NatWest's specific use cases
@@ -59,16 +59,17 @@ Rule 2: The blog length MUST be between 1200 - 1800 words.
    - DO NOT write generic "AI App Development" content unless the title is specifically about generic AI app development
    - The article MUST be about "${item.title}" - nothing else
 
-2. **HEADINGS MUST MATCH THE SPECIFIC TOPIC**:
-   - Create headings that are specific to "${item.title}"
+2. **HEADINGS MUST MATCH THE SPECIFIC TOPIC & INCLUDE KEYWORDS**:
+   - Create headings that are specific to "${item.title}" and include relevant keywords
    - Example: If title is "Banking AI App Development at NatWest":
-     * Use: "NatWest's AI Implementation Strategy" (NOT "Definition of AI App Development")
-     * Use: "Banking Functions Enhanced by AI" (NOT "Benefits of AI App Development")
-     * Use: "The Impact on NatWest's Operations" (NOT "How AI App Development Works")
+     * Use: "NatWest's AI Implementation Strategy in Banking" (NOT "Definition of AI App Development")
+     * Use: "Banking Functions Enhanced by AI at NatWest" (NOT "Benefits of AI App Development")
+     * Use: "The Impact of AI on NatWest's Operations" (NOT "How AI App Development Works")
    - Example: If title is "Data breach at Company X":
      * Use: "Understanding the Data Breach Incident" (NOT "Definition of AI App Development")
      * Use: "How the Breach Occurred" (NOT "Benefits of AI App Development")
    - DO NOT use generic headings like "Definition of AI App Development", "Benefits of AI App Development" unless the title is specifically about generic AI app development
+   - Include primary keywords naturally in 2-3 headings
 
 3. **PARAGRAPHS MUST MATCH THE SPECIFIC TOPIC**:
    - Every paragraph must be about "${item.title}"
@@ -77,8 +78,15 @@ Rule 2: The blog length MUST be between 1200 - 1800 words.
    - If the title mentions a specific event, write about that event
    - DO NOT write generic paragraphs about "AI app development" unless the title is specifically about generic AI app development
    - Use the article content as context to understand what "${item.title}" is about, then write original content about that specific topic
+   - Use primary keyword naturally throughout (12-32 times in 1200-1600 words)
 
-4. **CONTENT STRUCTURE**:
+4. **SEO REQUIREMENTS**:
+   - Include 4-6 strategic links: internal links (<a href="/automation">automation services</a>) and external links (<a href="https://example.com">credible source</a>) with natural anchor text
+   - Use primary keyword in first 100 words
+   - Include long-tail keyword variations naturally (2-3 times each)
+   - DO NOT include "Meta Title", "Meta Description", or "Topics" sections - these are handled separately
+
+5. **CONTENT STRUCTURE**:
    - Introduction: Explain what "${item.title}" is about and why it matters
    - Body sections: Discuss specific aspects related to "${item.title}" (not generic AI app development)
    - Conclusion: Summarize the implications of "${item.title}"
