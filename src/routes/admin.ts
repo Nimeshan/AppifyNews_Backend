@@ -8,6 +8,7 @@ import { parseContentBlocks } from "../services/contentParser";
 import { migrateImagesToRailbucket } from "../scripts/migrateImagesToRailbucket";
 import { getSignedImageUrl, extractFilenameFromUrl, deleteImageFromRailbucket } from "../services/railbucket";
 import { generateImage } from "../services/imageGenerator";
+import { generateExcerpt } from "../services/excerptGenerator";
 import { prisma } from "../lib/prisma";
 
 export const adminRouter = Router();
@@ -598,6 +599,132 @@ adminRouter.post("/regenerate-images", async (req, res) => {
     });
   } catch (error: any) {
     console.error("[ADMIN] Regenerate images error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// POST /api/admin/regenerate-excerpts - Regenerate excerpts/summaries for specific articles
+adminRouter.post("/regenerate-excerpts", async (req, res) => {
+  try {
+    const { articleTitles } = req.body;
+    
+    if (!articleTitles || !Array.isArray(articleTitles) || articleTitles.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide an array of article titles in the 'articleTitles' field",
+      });
+    }
+
+    console.log(`[ADMIN] Regenerating excerpts for ${articleTitles.length} articles...`);
+    
+    const results = [];
+    
+    for (const searchTitle of articleTitles) {
+      try {
+        // Find the article (case-insensitive partial match)
+        const article = await prisma.article.findFirst({
+          where: {
+            title: {
+              contains: searchTitle,
+              mode: 'insensitive'
+            }
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            content: true,
+          },
+        });
+
+        if (!article) {
+          results.push({
+            title: searchTitle,
+            success: false,
+            error: "Article not found",
+          });
+          continue;
+        }
+
+        console.log(`[ADMIN] Processing: ${article.title}`);
+
+        // Extract content from JSON blocks
+        let articleContent = "";
+        if (article.content && Array.isArray(article.content)) {
+          articleContent = (article.content as any[])
+            .filter(block => block.type === 'paragraph' && block.text)
+            .map(block => {
+              // Remove HTML tags
+              let text = block.text.replace(/<[^>]+>/g, ' ');
+              // Decode HTML entities
+              text = text
+                .replace(/&#039;/g, "'")
+                .replace(/&apos;/g, "'")
+                .replace(/&quot;/g, '"')
+                .replace(/&amp;/g, "&")
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&nbsp;/g, " ");
+              return text.trim();
+            })
+            .filter(text => text.length > 20)
+            .join(' ');
+        }
+
+        if (!articleContent || articleContent.length < 100) {
+          results.push({
+            title: article.title,
+            success: false,
+            error: "Article content is too short or not available",
+          });
+          continue;
+        }
+
+        // Generate new excerpt using OpenAI
+        console.log(`[ADMIN] Generating new excerpt with OpenAI...`);
+        const newExcerpt = await generateExcerpt(articleContent, article.title);
+        console.log(`[ADMIN] New excerpt generated (${newExcerpt.length} chars): ${newExcerpt.substring(0, 100)}...`);
+
+        // Update article with new excerpt
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { excerpt: newExcerpt },
+        });
+
+        results.push({
+          title: article.title,
+          slug: article.slug,
+          success: true,
+          oldExcerpt: article.excerpt,
+          newExcerpt: newExcerpt,
+        });
+
+        console.log(`[ADMIN] ✅ Updated: ${article.title}`);
+        
+      } catch (error: any) {
+        console.error(`[ADMIN] Error processing "${searchTitle}":`, error);
+        results.push({
+          title: searchTitle,
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.filter(r => !r.success).length;
+
+    res.json({
+      success: true,
+      message: `Regenerated excerpts for ${successCount} articles, ${failCount} failed.`,
+      results: results,
+    });
+  } catch (error: any) {
+    console.error("[ADMIN] Regenerate excerpts error:", error);
     res.status(500).json({
       success: false,
       error: error.message,
