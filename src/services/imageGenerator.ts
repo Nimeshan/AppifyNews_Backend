@@ -218,7 +218,7 @@ export async function generateImage(title: string, topic: string, description?: 
       model: "grok-2-image",
       prompt: prompt,
       n: 1,
-      aspect_ratio: "16:9", // Blog hero image standard aspect ratio
+      // Note: aspect_ratio parameter not supported in current OpenAI SDK types
     });
 
     console.log(`[Grok] API response received:`, JSON.stringify(response, null, 2));
