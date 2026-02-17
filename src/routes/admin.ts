@@ -209,11 +209,39 @@ adminRouter.post("/regenerate-article", async (req, res) => {
       pubDate: new Date().toISOString(),
     };
     
-    // Regenerate content using OpenAI (this will use the improved prompts)
-    console.log(`[ADMIN] Generating new content...`);
+    // Regenerate content using new method (no SEO rewriting, direct content usage)
+    console.log(`[ADMIN] Generating new content with new method...`);
     const rawBlog = await generateBlogContent(mockItem);
-    const seoResult = await optimizeForSEO(rawBlog);
-    const htmlContent = await convertToHTML(seoResult.optimizedContent);
+    console.log(`[ADMIN] Content generated, length: ${rawBlog.length} characters`);
+    
+    // Extract topics from RSS item (simple detection, no content rewriting)
+    const titleLower = (article.title || "").toLowerCase();
+    const topicMatches: string[] = [];
+    if (titleLower.includes("ai") || titleLower.includes("artificial intelligence")) {
+      topicMatches.push("AI");
+    }
+    if (titleLower.includes("automation")) {
+      topicMatches.push("Automation");
+    }
+    if (titleLower.includes("web")) {
+      topicMatches.push("Web");
+    }
+    if (titleLower.includes("startup") || titleLower.includes("venture capital")) {
+      topicMatches.push("Startups");
+    }
+    if (titleLower.includes("web3") || titleLower.includes("blockchain") || titleLower.includes("crypto")) {
+      topicMatches.push("Web3");
+    }
+    if (titleLower.includes("design")) {
+      topicMatches.push("Design");
+    }
+    const topics = topicMatches.length > 0 ? topicMatches.join(", ") : "AI";
+    console.log(`[ADMIN] Extracted topics: ${topics}`);
+    
+    // Use content directly (already in HTML format with outline headings)
+    const htmlContent = rawBlog; // Content already has proper HTML headings from outline
+    
+    // Parse content blocks
     const contentBlocks = parseContentBlocks(htmlContent);
     
     // Generate new title, meta description, and excerpt
@@ -236,8 +264,8 @@ adminRouter.post("/regenerate-article", async (req, res) => {
         title: blogTitle,
         excerpt: excerpt,
         metaDescription: metaDescription.slice(0, 160),
-        metaTitle: (seoResult.metaTitle || blogTitle.slice(0, 60)).slice(0, 60),
-        topics: seoResult.topics,
+        metaTitle: blogTitle.slice(0, 60), // Meta title max 60 chars
+        topics: topics,
         content: contentJson as any,
       },
     });
