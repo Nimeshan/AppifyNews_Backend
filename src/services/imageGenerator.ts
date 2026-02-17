@@ -93,6 +93,14 @@ CRITICAL RULES:
    - Enterprise/Corporate → varied professional palettes (not just blue): deep purples, forest greens, warm grays
    - Default → use colors that match the topic's mood and industry, avoid blue unless specifically appropriate
    - Vary colors between articles - do not use the same blue palette for every image
+7a. **COLOR DISCIPLINE RULES** - Apply these constraints to all color palettes:
+   - Use a restrained color palette (maximum 2–3 dominant colors)
+   - Avoid neon gradients
+   - Avoid overly saturated rainbow compositions
+   - Prefer muted, professional tones
+   - Use soft contrast rather than extreme vibrancy
+   - Background should be neutral or lightly tinted
+   - Do not use purple–orange neon tech gradients unless specifically appropriate
 8. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining STRICT 2D vector style:
    - Gaming → gaming hardware, controllers, game elements, devices with game interfaces, vibrant colors, dynamic compositions (flat 2D vector, simplified geometric shapes)
    - Finance/Banking → financial concepts, payment flows, currency elements, growth indicators, banking infrastructure, devices showing payment interfaces (flat 2D vector, NOT realistic dashboards)
@@ -153,6 +161,15 @@ MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS produc
 
 COLOR REQUIREMENT: Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images. Vary colors between articles - use greens, purples, oranges, reds, golds, teals, or other colors that match the topic's mood and industry. Only use blue when it's specifically appropriate for the domain (e.g., ocean/water themes, specific brand colors). Finance can use green/gold, Gaming can use vibrant reds/oranges, Healthcare can use soft greens, AI research can use purple/orange/green combinations, etc.
 
+COLOR DISCIPLINE RULES (MANDATORY):
+- Use a restrained color palette (maximum 2–3 dominant colors)
+- Avoid neon gradients
+- Avoid overly saturated rainbow compositions
+- Prefer muted, professional tones
+- Use soft contrast rather than extreme vibrancy
+- Background should be neutral or lightly tinted
+- Do not use purple–orange neon tech gradients unless specifically appropriate
+
 CRITICAL: NO HUMANS, BUT DEVICES ALLOWED - Do not show people, faces, or human figures. Devices (smartphones, tablets, laptops, computers, monitors) are allowed but must be flat 2D vector illustrations with simplified geometric shapes, not photorealistic. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 
 Article Context:
@@ -164,7 +181,7 @@ Generate a visual prompt that:
 2. Then provides the image prompt following the selected mode's style guidelines
 3. Detects the domain from the title/description
 4. Applies domain-specific visual concepts using the selected mode's style
-5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood
+5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood. Applies COLOR DISCIPLINE RULES: restrained palette (max 2-3 dominant colors), avoid neon gradients, avoid overly saturated rainbow compositions, prefer muted professional tones, soft contrast, neutral/lightly tinted background, no purple-orange neon tech gradients unless appropriate
 6. Shows NO humans, people, or faces`,
         },
       ],
