@@ -63,7 +63,7 @@ CRITICAL RULES:
    - "Banking AI" → financial technology, banking systems, fintech interfaces
 4. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
-6. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional
+6. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic
 7. No text, no words, no letters - pure visual elements only
 8. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
 9. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery
@@ -75,7 +75,7 @@ CRITICAL RULES:
 
 CRITICAL: The image must represent what the article heading describes. Extract the exact visual concept from the heading.
 
-STYLE: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional.
+STYLE: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic.
 
 Article Context:
 ${context}
@@ -122,7 +122,7 @@ Generate a visual prompt that directly matches the article heading with the illu
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a blog hero image representing: ${imageDescription}. Style: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, warm color palette, impressionistic but professional. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. Style: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic. No text, no words, just visual elements.`;
   }
 }
 
