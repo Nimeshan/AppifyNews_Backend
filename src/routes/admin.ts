@@ -7,6 +7,7 @@ import { convertToHTML } from "../services/htmlConverter";
 import { parseContentBlocks } from "../services/contentParser";
 import { migrateImagesToRailbucket } from "../scripts/migrateImagesToRailbucket";
 import { getSignedImageUrl, extractFilenameFromUrl, deleteImageFromRailbucket } from "../services/railbucket";
+import { generateImage } from "../services/imageGenerator";
 import { prisma } from "../lib/prisma";
 
 export const adminRouter = Router();
@@ -483,6 +484,120 @@ adminRouter.get("/check-images", async (_req, res) => {
     });
   } catch (error: any) {
     console.error("[Admin] Error checking images:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// POST /api/admin/regenerate-images - Regenerate images for specific articles using new Grok custom prompts
+adminRouter.post("/regenerate-images", async (req, res) => {
+  try {
+    const { articleTitles } = req.body;
+    
+    if (!articleTitles || !Array.isArray(articleTitles) || articleTitles.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide an array of article titles in the 'articleTitles' field",
+      });
+    }
+
+    console.log(`[ADMIN] Regenerating images for ${articleTitles.length} articles...`);
+    
+    const results = [];
+    
+    for (const searchTitle of articleTitles) {
+      try {
+        // Find the article (case-insensitive partial match)
+        const article = await prisma.article.findFirst({
+          where: {
+            title: {
+              contains: searchTitle,
+              mode: 'insensitive'
+            }
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            topics: true,
+            metaDescription: true,
+            imageUrl: true,
+          },
+        });
+
+        if (!article) {
+          results.push({
+            title: searchTitle,
+            success: false,
+            error: "Article not found",
+          });
+          continue;
+        }
+
+        console.log(`[ADMIN] Processing: ${article.title}`);
+
+        // Delete old image from Railbucket if it exists
+        let oldImageDeleted = false;
+        if (article.imageUrl && (article.imageUrl.includes('railbucket') || article.imageUrl.includes('t3.storageapi.dev'))) {
+          try {
+            const imageFilename = extractFilenameFromUrl(article.imageUrl);
+            if (imageFilename) {
+              await deleteImageFromRailbucket(imageFilename);
+              oldImageDeleted = true;
+              console.log(`[ADMIN] Deleted old image: ${imageFilename}`);
+            }
+          } catch (error: any) {
+            console.warn(`[ADMIN] Could not delete old image: ${error.message}`);
+          }
+        }
+
+        // Generate new image with custom prompt (using the new generateImagePrompt system)
+        console.log(`[ADMIN] Generating new image with Grok (custom OpenAI prompt)...`);
+        const newImageUrl = await generateImage(
+          article.title, 
+          article.topics || 'AI', 
+          article.metaDescription || undefined
+        );
+        console.log(`[ADMIN] New image generated: ${newImageUrl.substring(0, 80)}...`);
+
+        // Update article with new image
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { imageUrl: newImageUrl },
+        });
+
+        results.push({
+          title: article.title,
+          slug: article.slug,
+          success: true,
+          newImageUrl: newImageUrl,
+          oldImageDeleted: oldImageDeleted,
+        });
+
+        console.log(`[ADMIN] ✅ Updated: ${article.title}`);
+        
+      } catch (error: any) {
+        console.error(`[ADMIN] Error processing "${searchTitle}":`, error);
+        results.push({
+          title: searchTitle,
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.filter(r => !r.success).length;
+
+    res.json({
+      success: true,
+      message: `Regenerated images for ${successCount} articles, ${failCount} failed.`,
+      results: results,
+    });
+  } catch (error: any) {
+    console.error("[ADMIN] Regenerate images error:", error);
     res.status(500).json({
       success: false,
       error: error.message,

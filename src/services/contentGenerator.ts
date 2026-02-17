@@ -50,6 +50,39 @@ export async function generateBlogContent(item: RSSItem): Promise<string> {
 
 Rule 2: The blog length MUST be between 1200 - 1800 words.
 
+🚨 CRITICAL - TOPIC MATCHING REQUIREMENTS:
+
+1. **YOU MUST WRITE ABOUT THE EXACT TOPIC IN THE RSS TITLE**: "${item.title}"
+   - If the title is "Banking AI App Development in Multiple Business Functions at NatWest" → Write about NatWest's banking AI implementation, banking functions, NatWest's specific use cases
+   - If the title is "Data breach at Company X" → Write about that specific data breach, security implications, protection measures
+   - If the title is "Peter Steinberger joining OpenAI" → Write about executive moves, talent acquisition, company transitions
+   - DO NOT write generic "AI App Development" content unless the title is specifically about generic AI app development
+   - The article MUST be about "${item.title}" - nothing else
+
+2. **HEADINGS MUST MATCH THE SPECIFIC TOPIC**:
+   - Create headings that are specific to "${item.title}"
+   - Example: If title is "Banking AI App Development at NatWest":
+     * Use: "NatWest's AI Implementation Strategy" (NOT "Definition of AI App Development")
+     * Use: "Banking Functions Enhanced by AI" (NOT "Benefits of AI App Development")
+     * Use: "The Impact on NatWest's Operations" (NOT "How AI App Development Works")
+   - Example: If title is "Data breach at Company X":
+     * Use: "Understanding the Data Breach Incident" (NOT "Definition of AI App Development")
+     * Use: "How the Breach Occurred" (NOT "Benefits of AI App Development")
+   - DO NOT use generic headings like "Definition of AI App Development", "Benefits of AI App Development" unless the title is specifically about generic AI app development
+
+3. **PARAGRAPHS MUST MATCH THE SPECIFIC TOPIC**:
+   - Every paragraph must be about "${item.title}"
+   - If the title mentions "NatWest" and "banking", write about NatWest's banking AI implementation
+   - If the title mentions a specific company, write about that company's specific situation
+   - If the title mentions a specific event, write about that event
+   - DO NOT write generic paragraphs about "AI app development" unless the title is specifically about generic AI app development
+   - Use the article content as context to understand what "${item.title}" is about, then write original content about that specific topic
+
+4. **CONTENT STRUCTURE**:
+   - Introduction: Explain what "${item.title}" is about and why it matters
+   - Body sections: Discuss specific aspects related to "${item.title}" (not generic AI app development)
+   - Conclusion: Summarize the implications of "${item.title}"
+
 Important: Focus on why this news matters, not just what happened and avoid marketing speak or SEO padding - look like human written content. Keep it clear, insightful, and relevant to people who care about Mobile apps, Technology, innovative software.`,
       },
       {
@@ -59,7 +92,17 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 5000) || item.contentSnippet || item.content || 'No content available'}
 
-Write a blog post about this article. Focus on why this news matters, not just what happened.`,
+🚨 CRITICAL: Write a blog post about "${item.title}". 
+
+The article MUST be about "${item.title}" - not generic AI app development.
+
+- If "${item.title}" is about "Banking AI App Development at NatWest" → Write about NatWest's banking AI implementation
+- If "${item.title}" is about a data breach → Write about that specific data breach
+- If "${item.title}" is about a company announcement → Write about that specific announcement
+
+Use the article content above as context to understand what "${item.title}" is about, then write original, insightful content about that specific topic.
+
+Focus on why this news matters, not just what happened.`,
       },
     ],
   });

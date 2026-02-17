@@ -568,68 +568,77 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
       }
       
       // Generate excerpt using OpenAI (tailored summary of the article)
+      // Pass the original RSS title to ensure excerpt matches the specific topic
       let excerpt: string;
       try {
-        excerpt = await generateExcerptOpenAI(htmlContent);
+        excerpt = await generateExcerptOpenAI(htmlContent, item.title);
         // Ensure excerpt doesn't exceed database limits (typically 500-1000 chars, but be safe with 500)
         if (excerpt.length > 500) {
           excerpt = excerpt.slice(0, 497) + "...";
+        }
+        // Also enforce 250 character limit for excerpts (should be 150-250 from OpenAI, but double-check)
+        if (excerpt.length > 250) {
+          const truncated = excerpt.slice(0, 247);
+          const lastPeriod = truncated.lastIndexOf(".");
+          const lastSpace = truncated.lastIndexOf(" ");
+          if (lastPeriod > 100) {
+            excerpt = excerpt.slice(0, lastPeriod + 1);
+          } else if (lastSpace > 100) {
+            excerpt = excerpt.slice(0, lastSpace) + "...";
+          } else {
+            excerpt = truncated + "...";
+          }
         }
       } catch (error: any) {
         console.warn(`[Pipeline] Failed to generate excerpt with OpenAI: ${error.message}. Using meta description as fallback.`);
         excerpt = metaDescription.slice(0, 250);
       }
 
-      // Step 8: Get image - ALWAYS prioritize source URL image, only use Grok as absolute last resort
-      // Priority order: 1) Source article page image (extracted in Step 2), 2) RSS feed image, 3) Grok generation, 4) Placeholder
+      // Step 8: Get image - Prioritize Grok generation first, then fallback to source images
+      // Priority order: 1) Grok generation, 2) Source article page image, 3) RSS feed image, 4) Placeholder
       // All images are uploaded to Railbucket for consistent storage
-      let imageUrl = item.imageUrl || item.enclosure?.url || "";
+      let imageUrl = "";
       
-      console.log(`[Pipeline] Image selection check:`);
-      console.log(`[Pipeline]   - item.imageUrl: ${item.imageUrl ? `SET (${item.imageUrl.substring(0, 60)}...)` : 'NOT SET'}`);
-      console.log(`[Pipeline]   - item.enclosure?.url: ${item.enclosure?.url ? `SET (${item.enclosure.url.substring(0, 60)}...)` : 'NOT SET'}`);
+      console.log(`[Pipeline] Image selection: Prioritizing Grok generation first...`);
       
-      if (imageUrl) {
-        const imageSource = item.imageUrl ? 'source article page' : 'RSS feed';
-        console.log(`[Pipeline] ✅ Image found from ${imageSource}: ${imageUrl.substring(0, 80)}...`);
+      // Step 1: Try Grok generation first
+      try {
+        console.log(`[Pipeline] 🎨 Generating image with Grok-2-Image...`);
+        imageUrl = await generateImage(blogTitle, seoResult.topics, metaDescription);
+        console.log(`[Pipeline] ✅ Image generated with Grok-2-Image and uploaded to Railbucket`);
+      } catch (grokError: any) {
+        console.warn(`[Pipeline] ⚠️  Grok image generation failed: ${grokError.message}`);
+        console.log(`[Pipeline] Falling back to source images...`);
         
-        // Try to upload source image to Railbucket
-        console.log(`[Pipeline] Uploading ${imageSource} image to Railbucket...`);
-        try {
-          const filename = `${slugify(blogTitle, { lower: true, strict: true })}-${Date.now()}.png`;
-          imageUrl = await uploadImageToRailbucket(imageUrl, filename);
-          console.log(`[Pipeline] ✅ Source image uploaded to Railbucket successfully`);
-        } catch (uploadError: any) {
-          // Source image URL failed (can't download/access) - try one more time with different approach
-          console.error(`[Pipeline] ⚠️  Source image upload failed: ${uploadError.message}`);
-          console.log(`[Pipeline] Attempting to use image URL directly (may be a signed URL or CDN)...`);
+        // Step 2: Fallback to source article page image (extracted in Step 2)
+        let sourceImageUrl = articlePageImageUrl || item.imageUrl || item.enclosure?.url || "";
+        
+        if (sourceImageUrl) {
+          const imageSource = articlePageImageUrl ? 'source article page' : (item.imageUrl ? 'source article page' : 'RSS feed');
+          console.log(`[Pipeline] ✅ Found ${imageSource} image: ${sourceImageUrl.substring(0, 80)}...`);
           
-          // If it's already a valid URL (CDN, signed URL, etc.), use it directly
-          if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-            console.log(`[Pipeline] Using source image URL directly (not uploading to Railbucket)`);
-            // Keep the original URL - it might be a CDN or signed URL that works directly
-          } else {
-            // Only fall back to Grok if we absolutely can't use the source image
-            console.error(`[Pipeline] Source image URL is invalid, falling back to Grok generation as last resort`);
-            try {
-              imageUrl = await generateImage(blogTitle, seoResult.topics, metaDescription);
-              console.log(`[Pipeline] Image generated with Grok-2-Image (source image unavailable)`);
-            } catch (imgError) {
-              console.error(`[Pipeline] Grok image generation also failed, using placeholder:`, imgError);
+          // Try to upload source image to Railbucket
+          console.log(`[Pipeline] Uploading ${imageSource} image to Railbucket...`);
+          try {
+            const filename = `${slugify(blogTitle, { lower: true, strict: true })}-${Date.now()}.png`;
+            imageUrl = await uploadImageToRailbucket(sourceImageUrl, filename);
+            console.log(`[Pipeline] ✅ Source image uploaded to Railbucket successfully`);
+          } catch (uploadError: any) {
+            console.error(`[Pipeline] ⚠️  Source image upload failed: ${uploadError.message}`);
+            
+            // If it's already a valid URL (CDN, signed URL, etc.), use it directly
+            if (sourceImageUrl.startsWith('http://') || sourceImageUrl.startsWith('https://')) {
+              console.log(`[Pipeline] Using source image URL directly (not uploading to Railbucket)`);
+              imageUrl = sourceImageUrl;
+            } else {
+              // Source image URL is invalid - use placeholder
+              console.error(`[Pipeline] Source image URL is invalid, using placeholder`);
               imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
             }
           }
-        }
-      } else {
-        // No source image found at all - only use Grok as absolute last resort
-        console.log(`[Pipeline] ⚠️  No image found in source article page or RSS feed`);
-        console.log(`[Pipeline] Generating with Grok-2-Image as last resort...`);
-        try {
-          // generateImage already uploads to Railbucket and returns Railbucket URL
-          imageUrl = await generateImage(blogTitle, seoResult.topics, metaDescription);
-          console.log(`[Pipeline] ✅ Image generated with Grok-2-Image and uploaded to Railbucket`);
-        } catch (imgError) {
-          console.error(`[Pipeline] Grok image generation failed, using placeholder:`, imgError);
+        } else {
+          // No source image found - use placeholder
+          console.log(`[Pipeline] ⚠️  No source image found, using placeholder`);
           imageUrl = "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80";
         }
       }
