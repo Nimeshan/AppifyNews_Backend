@@ -63,13 +63,23 @@ CRITICAL RULES:
    - "Banking AI" → financial technology, banking systems, fintech interfaces
 4. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
-6. **STYLE REQUIREMENT** - Apply this unified style to ALL images:
+6. **BASE STYLE** - All images must use this foundation:
    Modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold.
-7. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, or abstract concepts.
-8. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes or office environments with people.
-9. No text, no words, no letters - pure visual elements only
-10. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
-11. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery or people
+7. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining the illustrated editorial style:
+   - Gaming → gaming hardware, controllers, immersive tech environments, vibrant colors, dynamic compositions (illustrated, not photographic)
+   - Finance/Banking → fintech dashboards, financial data visualizations, payment interfaces, charts and graphs (illustrated, not photographic)
+   - Healthcare/Medical → medical data screens, clinical interfaces, research visualizations, health tech (illustrated, not photographic)
+   - Enterprise/Corporate → business environments, office spaces, corporate tech (illustrated, no people)
+   - AI research/Technical → data visualization scenes, abstract tech elements, code/data screens, analytical interfaces (illustrated, not photographic)
+   - Media/Publishing → editorial environments, newsroom tech, publishing interfaces (illustrated, no people)
+   - Hardware/Products → product illustrations, technical devices, precise details (illustrated, not photographic)
+   - Automation/Workflow → workflow diagrams, process visualizations, automation interfaces, flow charts (illustrated, not photographic)
+   - Default → technology, innovation, digital transformation (illustrated, not photographic)
+8. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
+9. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes or office environments with people.
+10. No text, no words, no letters - pure visual elements only
+11. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
+12. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery or people
 11. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
         },
         {
@@ -78,22 +88,43 @@ CRITICAL RULES:
 
 CRITICAL: The image must represent what the article heading describes. Extract the exact visual concept from the heading.
 
-STYLE REQUIREMENT (applies to ALL images):
+STEP 1: DETECT THE DOMAIN from the article title/description:
+- If title mentions "publisher", "news", "media", "editorial", "journalism" → Media/Publishing domain
+- If title mentions "finance", "banking", "payment", "accounting", "ROI", "accounts payable" → Finance/Banking domain
+- If title mentions "gaming", "game", "gamer" → Gaming domain
+- If title mentions "healthcare", "medical", "hospital", "patient" → Healthcare/Medical domain
+- If title mentions "enterprise", "corporate", "business" → Enterprise/Corporate domain
+- If title mentions "AI research", "model", "algorithm", "technical" → AI research/Technical domain
+- If title mentions "hardware", "product", "device" → Hardware/Products domain
+- If title mentions "automation", "workflow", "process" → Automation/Workflow domain
+- Otherwise → Default domain
+
+STEP 2: APPLY DOMAIN-SPECIFIC VISUAL CONCEPTS (all illustrated, not photographic):
+- Media/Publishing → editorial environments, newsroom tech, publishing interfaces, screens showing content (illustrated, no people)
+- Finance/Banking → fintech dashboards, financial data visualizations, payment interfaces, charts and graphs (illustrated, not photographic)
+- Gaming → gaming hardware, controllers, immersive tech environments, vibrant colors, dynamic compositions (illustrated, not photographic)
+- Healthcare/Medical → medical data screens, clinical interfaces, research visualizations, health tech (illustrated, not photographic)
+- Enterprise/Corporate → business environments, office spaces, corporate tech (illustrated, no people)
+- AI research/Technical → data visualization scenes, abstract tech elements, code/data screens, analytical interfaces (illustrated, not photographic)
+- Hardware/Products → product illustrations, technical devices, precise details (illustrated, not photographic)
+- Automation/Workflow → workflow diagrams, process visualizations, automation interfaces, flow charts, process flows (illustrated, not photographic)
+- Default → technology, innovation, digital transformation (illustrated, not photographic)
+
+BASE STYLE (applies to ALL domains):
 Modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold.
 
-CRITICAL: NO HUMANS - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, or abstract concepts that match the article heading.
+CRITICAL: NO HUMANS - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 
-The visual concept should match the article domain (finance, gaming, healthcare, etc.) but the STYLE is always: modern editorial illustration with sharp, high-contrast lighting and cinematic composition.
-
-Avoid repetitive visual templates. Use varied composition, perspective, and lighting depending on topic. No generic "AI brain" imagery. No people or human figures.
+All visuals must be ILLUSTRATED, not photographic. Even technical concepts should be rendered as editorial illustrations.
 
 Article Context:
 ${context}
 
 Generate a visual prompt that:
-1. Directly matches the article heading with appropriate visual concepts
-2. Uses the unified style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold
-3. Shows NO humans, people, or faces - only objects, environments, technology, data visualizations, interfaces, or abstract concepts`,
+1. Detects the domain from the title/description
+2. Applies domain-specific visual concepts (workflows for automation, dashboards for finance, etc.) - all ILLUSTRATED, not photographic
+3. Uses the base style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold
+4. Shows NO humans, people, or faces - only objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts`,
         },
       ],
     });
@@ -135,7 +166,7 @@ Generate a visual prompt that:
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a blog hero image representing: ${imageDescription}. Style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold. No humans, no people, no faces. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. Style: modern editorial illustration, sharp, high-contrast lighting, cinematic composition, minimal clutter, professional publication quality, distinctive and visually bold. Illustrated, not photographic. No humans, no people, no faces. No text, no words, just visual elements.`;
   }
 }
 
