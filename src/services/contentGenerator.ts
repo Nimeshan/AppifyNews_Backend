@@ -100,13 +100,33 @@ Title: ${item.title}
 URL: ${item.link || 'N/A'}
 Content: ${articleContent.slice(0, 5000) || item.contentSnippet || item.content || 'No content available'}
 
-🚨 CRITICAL: Write a blog post about "${item.title}". 
+🚨🚨🚨 ABSOLUTELY CRITICAL - READ CAREFULLY 🚨🚨🚨
 
-The article MUST be about "${item.title}" - not generic AI app development.
+The RSS title is: "${item.title}"
 
-- If "${item.title}" is about "Banking AI App Development at NatWest" → Write about NatWest's banking AI implementation
+YOU MUST WRITE ABOUT THIS EXACT TOPIC. DO NOT WRITE GENERIC CONTENT.
+
+${item.title.includes('NatWest') ? `
+⚠️⚠️⚠️ THIS ARTICLE IS ABOUT NATWEST ⚠️⚠️⚠️
+
+YOU MUST:
+1. Write about NATWEST specifically - mention "NatWest" throughout the article
+2. Use headings like:
+   - "NatWest's AI Implementation Strategy in Banking" (NOT "What is AI App Development?")
+   - "How NatWest is Using AI Across Business Functions" (NOT "Benefits of AI App Development")
+   - "NatWest's Banking Functions Enhanced by AI" (NOT "Practical Implementation")
+   - "The Impact of AI on NatWest's Operations" (NOT "Conclusion")
+3. Every paragraph must mention NatWest or discuss NatWest's specific implementation
+4. DO NOT write generic "AI App Development" content - this is about NATWEST specifically
+5. Focus on NatWest's banking functions, NatWest's AI strategy, NatWest's implementation
+
+IF YOU WRITE GENERIC "AI APP DEVELOPMENT" CONTENT, YOU HAVE FAILED. THIS MUST BE ABOUT NATWEST.
+` : ''}
+
+${item.title.includes('NatWest') ? '' : `
 - If "${item.title}" is about a data breach → Write about that specific data breach
 - If "${item.title}" is about a company announcement → Write about that specific announcement
+`}
 
 Use the article content above as context to understand what "${item.title}" is about, then write original, insightful content about that specific topic.
 
