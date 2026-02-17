@@ -55,12 +55,16 @@ CRITICAL PRIORITY: The image MUST visually represent the specific article headin
 CRITICAL RULES:
 1. **MATCH THE ARTICLE HEADING** - The image must visually represent what the article heading describes. If heading is "Valve's Steam Deck OLED stock shortage", show Steam Deck hardware, stock/supply chain visuals, not generic tech.
 2. **Be SPECIFIC to the article topic** - Do NOT use generic AI/brain imagery unless the article is specifically about neural networks or brain-like AI
-3. **Extract the UNIQUE visual concept** from the title/heading:
-   - "Valve's Steam Deck OLED stock shortage" → Steam Deck handheld device, supply chain, stock availability visuals
-   - "Debenhams pilots agentic AI commerce" → retail commerce, payment integration, AI-powered shopping
-   - "Anomalies in Time-Series Data" → data charts, graphs, anomaly detection visualization, time-series plots
-   - "Multiple GPUs" → GPU hardware, parallel processing architecture, computer chips, server racks
-   - "Banking AI" → financial technology, banking systems, fintech interfaces
+3. **Extract the UNIQUE visual concept** from the title/heading - think about the SPECIFIC ACTION or UNIQUE ELEMENT:
+   - "Barclays bets on AI integration to cut costs" → cost reduction concept, efficiency arrows, streamlined processes, financial optimization (NOT a dashboard)
+   - "Google Identifies State-Sponsored Hackers" → cybersecurity shield, threat indicators, defense barriers, attack patterns (NOT network diagrams)
+   - "Singapore Leads AI Deployment" → Singapore skyline/landmark, deployment arrows, scaling visuals, production environment (NOT a dashboard)
+   - "Valve's Steam Deck OLED stock shortage" → Steam Deck handheld device, supply chain visuals, stock availability indicators
+   - "Debenhams pilots agentic AI commerce" → retail commerce concept, payment flow, AI-powered shopping elements
+   - "Anomalies in Time-Series Data" → anomaly detection concept, time-series visualization, outlier indicators
+   - "Multiple GPUs" → GPU hardware, parallel processing concept, computer chips, server racks
+   
+   CRITICAL: Think about the ACTION in the title (cut costs, identify, lead, pilot, etc.) and create a visual that represents that specific action using conceptual metaphors, NOT generic domain imagery like dashboards or screens.
 4. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
 6. **BASE STYLE** - All images must use this foundation:
@@ -87,7 +91,7 @@ CRITICAL RULES:
    - Automation/Workflow → workflow diagrams, process flows, automation concepts (flat vector, clean outlines)
    - Default → technology concepts, innovation symbols, digital transformation metaphors (flat vector, bold shapes)
 9. **NO HUMANS** - Do not show people, faces, or human figures. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
-10. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes or office environments with people.
+10. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes, office environments, realistic dashboards, or network diagrams. Each article should have a UNIQUE visual concept based on its specific topic and action. Do NOT default to "dashboard on screen" or "network diagram" for similar topics.
 11. No text, no words, no letters - pure visual elements only
 12. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
 13. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery or people
