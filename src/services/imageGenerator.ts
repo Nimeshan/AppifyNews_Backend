@@ -50,19 +50,32 @@ async function generateImagePrompt(title: string, description?: string, topic?: 
           role: "system",
           content: `You are an expert at creating image generation prompts. Generate a detailed, visual description for a blog hero image that matches the article content.
 
-Rules:
-1. Create a specific, visual description that directly relates to the article title and content
-2. Focus on concrete visual elements (objects, scenes, concepts) - not abstract ideas
-3. Style: professional, modern, clean, minimalist, futuristic, suitable for a technology blog
-4. No text, no words, no letters - pure visual elements only
-5. Keep it concise (50-100 words max)
-6. Make it specific to the article - if it's about "data breach", describe security/cybersecurity visuals, not generic tech
-7. If it's about a specific company or person, focus on the concept/industry, not the person/company name
-8. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
+CRITICAL RULES:
+1. **Be SPECIFIC to the article topic** - Do NOT use generic AI/brain imagery unless the article is specifically about neural networks or brain-like AI
+2. **Extract the UNIQUE visual concept** from the title:
+   - "Anomalies in Time-Series Data" → data charts, graphs, anomaly detection visualization, time-series plots
+   - "Multiple GPUs" → GPU hardware, parallel processing architecture, computer chips, server racks
+   - "Explainable AI" → decision trees, transparent models, interpretability diagrams, flowchart visualization
+   - "Point-to-Point Operations" → network connections, communication patterns, data flow diagrams
+   - "Data Breach" → cybersecurity shields, locks, security systems
+   - "Banking AI" → financial technology, banking systems, fintech interfaces
+3. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
+4. Focus on concrete visual elements (objects, scenes, concepts) - not abstract ideas
+5. Style: professional, modern, clean, minimalist, futuristic, suitable for a technology blog
+6. No text, no words, no letters - pure visual elements only
+7. Keep it concise (50-100 words max)
+8. Make it specific to the article - extract the unique visual concept from the title and description
+9. If it's about a specific company or person, focus on the concept/industry, not the person/company name
+10. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
         },
         {
           role: "user",
-          content: `Create an image generation prompt for this article:\n\n${context}`,
+          content: `Create an image generation prompt for this article. Extract the UNIQUE visual concept from the title and description - do NOT use generic AI/brain imagery unless the article is specifically about neural networks.
+
+Article Context:
+${context}
+
+Generate a specific visual prompt that matches the unique topic of this article.`,
         },
       ],
     });
