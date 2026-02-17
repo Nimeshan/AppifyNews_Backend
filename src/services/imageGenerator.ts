@@ -63,11 +63,21 @@ CRITICAL RULES:
    - "Banking AI" → financial technology, banking systems, fintech interfaces
 4. **Avoid generic AI imagery** (brains, neural networks) unless the article is specifically about neural networks or brain-like AI
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
-6. **STYLE REQUIREMENT**: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic
-7. No text, no words, no letters - pure visual elements only
-8. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
-9. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery
-10. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
+6. **STYLE SYSTEM** - Choose a visual style that matches the article domain:
+   - Gaming → cinematic digital illustration, dynamic lighting, immersive tech atmosphere
+   - Finance/Banking → clean fintech UI-inspired illustration, minimal, sharp lines, modern dashboards
+   - Healthcare/Medical → clinical, research-focused environment, soft lighting, medical data screens
+   - Enterprise/Corporate → refined corporate editorial illustration, subtle realism
+   - AI research/Technical → data visualization driven scene, abstract tech elements, analytical mood
+   - Media/Publishing → newsroom or editorial environment with modern tech overlays
+   - Hardware/Products → technical product illustration, precise details, professional photography style
+   - Automation/Workflow → workflow visualization, process diagrams, digital efficiency
+   - Default → high-quality editorial illustration, polished, modern, platform-ready, professional but visually distinctive
+7. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes unless the article is specifically about executive meetings.
+8. No text, no words, no letters - pure visual elements only
+9. The visual must directly relate to the article heading - if heading mentions a product, show that product; if it mentions an action, show that action
+10. If it's about a specific company or person, focus on the concept/industry related to the heading, not generic company imagery
+11. Output ONLY the image description prompt - no explanations, no labels, just the prompt text`,
         },
         {
           role: "user",
@@ -75,12 +85,23 @@ CRITICAL RULES:
 
 CRITICAL: The image must represent what the article heading describes. Extract the exact visual concept from the heading.
 
-STYLE: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic.
+STYLE RULE: Choose a visual style that matches the article domain:
+- Gaming → cinematic digital illustration, dynamic lighting, immersive tech atmosphere
+- Finance/Banking → clean fintech UI-inspired illustration, minimal, sharp lines, modern dashboards
+- Healthcare/Medical → clinical, research-focused environment, soft lighting, medical data screens
+- Enterprise/Corporate → refined corporate editorial illustration, subtle realism
+- AI research/Technical → data visualization driven scene, abstract tech elements, analytical mood
+- Media/Publishing → newsroom or editorial environment with modern tech overlays
+- Hardware/Products → technical product illustration, precise details, professional photography style
+- Automation/Workflow → workflow visualization, process diagrams, digital efficiency
+- Default → high-quality editorial illustration, polished, modern, platform-ready, professional but visually distinctive
+
+Avoid repetitive visual templates. Use varied composition, perspective, and lighting depending on topic. No generic "AI brain" imagery. No repeated boardroom scenes unless the article is specifically about executive meetings.
 
 Article Context:
 ${context}
 
-Generate a visual prompt that directly matches the article heading with the illustrated corporate style. If the heading mentions a specific product, action, or concept, the image must show that.`,
+Generate a visual prompt that directly matches the article heading with an appropriate style for its domain. If the heading mentions a specific product, action, or concept, the image must show that.`,
         },
       ],
     });
@@ -122,7 +143,7 @@ Generate a visual prompt that directly matches the article heading with the illu
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a blog hero image representing: ${imageDescription}. Style: 2D illustrated, painted style, corporate professional aesthetic, not cartoon-like, artistic brushstrokes, impressionistic but professional, any color palette that fits the topic. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. Style: high-quality editorial illustration, polished, modern, platform-ready, professional but visually distinctive. No text, no words, just visual elements.`;
   }
 }
 
