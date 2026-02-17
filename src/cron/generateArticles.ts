@@ -12,7 +12,8 @@ import { generateBlogTitle as generateBlogTitleCode } from "../services/titleGen
 import { generateMetaDescription as generateMetaDescriptionCode } from "../services/metaDescriptionGeneratorCode";
 import { generateImage } from "../services/imageGenerator";
 import { uploadImageToRailbucket } from "../services/railbucket";
-import { parseContentBlocks, generateSlug, generateExcerpt } from "../services/contentParser";
+import { parseContentBlocks, generateSlug } from "../services/contentParser";
+import { generateExcerpt as generateExcerptOpenAI } from "../services/excerptGenerator";
 import { prisma } from "../lib/prisma";
 import slugify from "slugify";
 import OpenAI from "openai";
@@ -566,11 +567,17 @@ export async function generateArticles(fetchAllOverride?: boolean): Promise<void
         }
       }
       
-      // Generate excerpt (limit to reasonable length for database)
-      let excerpt = generateExcerpt(contentBlocks, metaDescription) || metaDescription.slice(0, 250);
-      // Ensure excerpt doesn't exceed database limits (typically 500-1000 chars, but be safe with 500)
-      if (excerpt.length > 500) {
-        excerpt = excerpt.slice(0, 497) + "...";
+      // Generate excerpt using OpenAI (tailored summary of the article)
+      let excerpt: string;
+      try {
+        excerpt = await generateExcerptOpenAI(htmlContent);
+        // Ensure excerpt doesn't exceed database limits (typically 500-1000 chars, but be safe with 500)
+        if (excerpt.length > 500) {
+          excerpt = excerpt.slice(0, 497) + "...";
+        }
+      } catch (error: any) {
+        console.warn(`[Pipeline] Failed to generate excerpt with OpenAI: ${error.message}. Using meta description as fallback.`);
+        excerpt = metaDescription.slice(0, 250);
       }
 
       // Step 8: Get image - ALWAYS prioritize source URL image, only use Grok as absolute last resort
