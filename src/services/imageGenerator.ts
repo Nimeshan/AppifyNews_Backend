@@ -69,12 +69,14 @@ CRITICAL RULES:
 5. Focus on concrete visual elements (objects, scenes, concepts) that match the heading - not abstract ideas
 5a. **VISUAL MODE SELECTION** - Choose ONE of the following based on the title:
    MODE A (EDITORIAL VECTOR): conceptual metaphor illustration, bold shapes, no UI realism. Use for abstract research topics, cyber, geopolitics, culture/behavior, healthcare, anything that benefits from metaphor illustration.
-   MODE B (PRODUCT UI HERO MOCKUP): clean SaaS landing-page hero mockup with abstract UI cards and interface elements, not a real screenshot. Use when the title is about a product, platform, API, studio, dashboard, console, tool, model release, SDK, "launches a platform", "introduces a product", "new model release", "developer tools", "interactions API", "MaaS", "console", "dashboard", "studio", "workspace".
-   MODE B MUST be original and generic: no logos, no brand names, no readable text.
+   MODE B (PRODUCT UI HERO MOCKUP): clean SaaS landing-page hero mockup with abstract UI cards and interface elements, not a real screenshot. Use when the title is about a product, platform, API, studio, dashboard, console, tool, model release, SDK, "launches a platform", "introduces a product", "new model release", "developer tools", "interactions API", "MaaS", "console", "dashboard", "studio", "workspace". MODE B MUST be original and generic: no logos, no brand names, no readable text.
+   MODE C (MINIMAL ISOMETRIC PRODUCT ILLUSTRATION): minimal isometric 3D vector illustration with soft rounded geometry. Use when title relates to: apps, mobile, consumer tech, UI, user interaction, product usage, software tools, developer workflows, modern AI applications.
 6. **STRICT VISUAL STYLE** - Apply based on selected MODE:
    MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
    
    MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design.
+   
+   MODE C (MINIMAL ISOMETRIC PRODUCT ILLUSTRATION): Minimal isometric 3D vector illustration. Soft rounded geometry. Slight angled perspective allowed. Subtle soft drop shadows only. No photorealism. No texture. No cinematic lighting. Simplified UI elements. Clean SaaS marketing illustration aesthetic. Balanced modern color palette (2–4 dominant colors, no neon gradients). Light neutral background preferred.
 6a. **DEVICES ARE ALLOWED** - You may include devices (smartphones, tablets, laptops, computers, monitors) but they MUST be:
    - Flat 2D vector illustrations with simplified geometric shapes
    - Clean rectangular shapes with rounded corners (not photorealistic)
@@ -94,7 +96,7 @@ CRITICAL RULES:
    - Default → use colors that match the topic's mood and industry, avoid blue unless specifically appropriate
    - Vary colors between articles - do not use the same blue palette for every image
 7a. **COLOR DISCIPLINE RULES** - Apply these constraints to all color palettes:
-   - Use a restrained color palette (maximum 2–3 dominant colors)
+   - Use a restrained color palette (maximum 2–4 dominant colors for MODE C, 2–3 for MODE A and B)
    - Avoid neon gradients
    - Avoid overly saturated rainbow compositions
    - Prefer muted, professional tones
@@ -128,8 +130,9 @@ STEP 0: CHOOSE VISUAL MODE
 Pick ONE mode based on the article title:
 - MODE A (EDITORIAL VECTOR): Use for abstract research topics, cyber, geopolitics, culture/behavior, healthcare, conceptual topics
 - MODE B (PRODUCT UI HERO MOCKUP): Use when title mentions: platforms, APIs, SDKs, "launches a platform", "introduces a product", "new model release", "developer tools", "interactions API", "MaaS", "console", "dashboard", "studio", "workspace", product launches, tool releases
+- MODE C (MINIMAL ISOMETRIC PRODUCT ILLUSTRATION): Use when title relates to: apps, mobile, consumer tech, UI, user interaction, product usage, software tools, developer workflows, modern AI applications
 
-Output format: Start your response with "MODE: A" or "MODE: B" on its own line, then provide the image prompt.
+Output format: Start your response with "MODE: A", "MODE: B", or "MODE: C" on its own line, then provide the image prompt.
 
 STEP 1: DETECT THE DOMAIN from the article title/description:
 - If title mentions "publisher", "news", "media", "editorial", "journalism" → Media/Publishing domain
@@ -159,10 +162,12 @@ MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified ge
 
 MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design.
 
+MODE C (MINIMAL ISOMETRIC PRODUCT ILLUSTRATION): Minimal isometric 3D vector illustration. Soft rounded geometry. Slight angled perspective allowed. Subtle soft drop shadows only. No photorealism. No texture. No cinematic lighting. Simplified UI elements. Clean SaaS marketing illustration aesthetic. Balanced modern color palette (2–4 dominant colors, no neon gradients). Light neutral background preferred.
+
 COLOR REQUIREMENT: Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images. Vary colors between articles - use greens, purples, oranges, reds, golds, teals, or other colors that match the topic's mood and industry. Only use blue when it's specifically appropriate for the domain (e.g., ocean/water themes, specific brand colors). Finance can use green/gold, Gaming can use vibrant reds/oranges, Healthcare can use soft greens, AI research can use purple/orange/green combinations, etc.
 
 COLOR DISCIPLINE RULES (MANDATORY):
-- Use a restrained color palette (maximum 2–3 dominant colors)
+- Use a restrained color palette (maximum 2–4 dominant colors for MODE C, 2–3 for MODE A and B)
 - Avoid neon gradients
 - Avoid overly saturated rainbow compositions
 - Prefer muted, professional tones
@@ -176,12 +181,12 @@ Article Context:
 ${context}
 
 Generate a visual prompt that:
-0. First selects MODE A or MODE B based on the title
-1. Outputs "MODE: A" or "MODE: B" on the first line
+0. First selects MODE A, MODE B, or MODE C based on the title
+1. Outputs "MODE: A", "MODE: B", or "MODE: C" on the first line
 2. Then provides the image prompt following the selected mode's style guidelines
 3. Detects the domain from the title/description
 4. Applies domain-specific visual concepts using the selected mode's style
-5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood. Applies COLOR DISCIPLINE RULES: restrained palette (max 2-3 dominant colors), avoid neon gradients, avoid overly saturated rainbow compositions, prefer muted professional tones, soft contrast, neutral/lightly tinted background, no purple-orange neon tech gradients unless appropriate
+5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood. Applies COLOR DISCIPLINE RULES: restrained palette (max 2-4 dominant colors for MODE C, 2-3 for others), avoid neon gradients, avoid overly saturated rainbow compositions, prefer muted professional tones, soft contrast, neutral/lightly tinted background, no purple-orange neon tech gradients unless appropriate
 6. Shows NO humans, people, or faces`,
         },
       ],
@@ -192,14 +197,14 @@ Generate a visual prompt that:
       throw new Error("OpenAI returned empty prompt");
     }
 
-    // Extract mode if present
+    // Extract mode if present (robust regex parsing)
     let mode = "A"; // default
-    let cleanPrompt = prompt;
-    if (prompt.startsWith("MODE:")) {
-      const lines = prompt.split('\n');
-      const modeLine = lines[0];
-      mode = modeLine.includes("B") ? "B" : "A";
-      cleanPrompt = lines.slice(1).join('\n').trim();
+    let cleanPrompt = prompt.trim();
+
+    const modeMatch = cleanPrompt.match(/^\s*mode\s*[:\-]\s*([abc])\b/i);
+    if (modeMatch) {
+      mode = modeMatch[1].toUpperCase();
+      cleanPrompt = cleanPrompt.replace(modeMatch[0], "").trim();
     }
 
     // Clean up the prompt (remove quotes, labels, etc.)
@@ -208,7 +213,13 @@ Generate a visual prompt that:
       .replace(/^(prompt|image|description):\s*/i, "")
       .trim();
 
-    console.log(`[ImagePrompt] Selected MODE: ${mode === "B" ? "PRODUCT UI HERO MOCKUP" : "EDITORIAL VECTOR"}`);
+    const modeNames: Record<string, string> = {
+      A: "EDITORIAL VECTOR",
+      B: "PRODUCT UI HERO MOCKUP",
+      C: "MINIMAL ISOMETRIC PRODUCT ILLUSTRATION"
+    };
+
+    console.log(`[ImagePrompt] Selected MODE: ${modeNames[mode] || mode}`);
     console.log(`[ImagePrompt] Generated prompt: ${cleanPrompt.substring(0, 100)}...`);
     return cleanPrompt;
   } catch (error: any) {
