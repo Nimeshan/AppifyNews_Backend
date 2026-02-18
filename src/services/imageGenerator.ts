@@ -72,9 +72,9 @@ CRITICAL RULES:
    MODE B (PRODUCT UI HERO MOCKUP): clean SaaS landing-page hero mockup with abstract UI cards and interface elements, not a real screenshot. Use when the title is about a product, platform, API, studio, dashboard, console, tool, model release, SDK, "launches a platform", "introduces a product", "new model release", "developer tools", "interactions API", "MaaS", "console", "dashboard", "studio", "workspace". MODE B MUST be original and generic: no logos, no brand names, no readable text.
    MODE C (SOFT FLAT STARTUP ILLUSTRATION): soft flat 2D vector illustration with no dark outlines, shapes defined by color blocks only. Use when title relates to: product-related topics, app-related topics, UX, user engagement, AI tools in practical use, startup/SaaS articles, modern tech features, anything that benefits from a friendly, approachable tone.
 6. **STRICT VISUAL STYLE** - Apply based on selected MODE:
-   MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
+   MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified geometric shapes only. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by color fills only - use color fills to define shapes, not outlines. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark.
    
-   MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design.
+   MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by color fills and gradients only. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark.
    
    MODE C (SOFT FLAT STARTUP ILLUSTRATION): Soft flat 2D vector illustration with smooth gradients and clean vector-art appearance. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by soft color fills and smooth gradients only - use pastel color fills to define shapes, not outlines. Rounded, organic geometry. Smooth gradients within shapes are allowed for depth. No stroke lines whatsoever. No heavy shadows. No realistic lighting. No photorealism. No texture. No 3D perspective. No isometric rendering. Clean, polished, modern startup illustration aesthetic with soft pastel colors. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark. Style should feel inviting, futuristic, and polished with smooth color transitions.
 6a. **DEVICES ARE ALLOWED** - You may include devices (smartphones, tablets, laptops, computers, monitors) but they MUST be:
@@ -96,12 +96,13 @@ CRITICAL RULES:
    - Default → use colors that match the topic's mood and industry, avoid blue unless specifically appropriate
    - Vary colors between articles - do not use the same blue palette for every image
 7a. **COLOR DISCIPLINE RULES** - Apply these constraints to all color palettes:
-   - Use a restrained color palette (maximum 2–4 dominant colors for MODE C, 2–3 for MODE A and B)
+   - Use a restrained color palette (maximum 5 dominant colors for all modes)
    - Avoid neon gradients
-   - Avoid overly saturated rainbow compositions
-   - Prefer muted, professional tones
-   - Use soft contrast rather than extreme vibrancy
-   - Background should be neutral or lightly tinted
+   - Avoid overly saturated rainbow compositions (keep it restrained, not super colorful)
+   - All modes: Use pastel colors OR vibrant colors - both are acceptable. Avoid muted/dull tones.
+   - MODE A and B: Pastel or vibrant colors are fine - use colors that match the topic's mood
+   - MODE C: Use soft pastel colors (light blues, light purples, soft pinks, light greens, soft teals) with smooth gradients - clean, polished, inviting
+   - Background should be neutral or lightly tinted (white/light neutral preferred)
    - Do not use purple–orange neon tech gradients unless specifically appropriate
 8. **DOMAIN-SPECIFIC ADAPTATIONS** - Apply domain-appropriate visual concepts while maintaining STRICT 2D vector style:
    - Gaming → gaming hardware, controllers, game elements, devices with game interfaces, vibrant colors, dynamic compositions (flat 2D vector, simplified geometric shapes)
@@ -158,29 +159,30 @@ STEP 2: APPLY DOMAIN-SPECIFIC VISUAL CONCEPTS (all flat 2D vector graphic style)
 - Default → technology concepts, innovation symbols, digital transformation metaphors, devices when relevant (flat 2D vector, simplified geometric shapes)
 
 STRICT VISUAL STYLE (applies based on selected MODE):
-MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only.
+MODE A (EDITORIAL VECTOR): Flat 2D vector graphic composition. Use simplified geometric shapes only. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by color fills only - use color fills to define shapes, not outlines. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark.
 
-MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design.
+MODE B (PRODUCT UI HERO MOCKUP): Website hero section mockup, modern SaaS product design, rounded UI cards, minimal charts and interface widgets, soft gradients, subtle shadows, clean layout, no humans, no logos, no readable text. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by color fills and gradients only. Flat/clean, high polish, 2D UI design, not 3D render. Abstract UI components (charts, buttons, tiles). Not a real screenshot - original UI design. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark.
 
 MODE C (SOFT FLAT STARTUP ILLUSTRATION): Soft flat 2D vector illustration with smooth gradients and clean vector-art appearance. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by soft color fills and smooth gradients only - use pastel color fills to define shapes, not outlines. Rounded, organic geometry. Smooth gradients within shapes are allowed for depth. No stroke lines whatsoever. No heavy shadows. No realistic lighting. No photorealism. No texture. No 3D perspective. No isometric rendering. Clean, polished, modern startup illustration aesthetic with soft pastel colors. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark. Style should feel inviting, futuristic, and polished with smooth color transitions.
 
-CRITICAL FOR MODE C - NO OUTLINES RULE (MANDATORY):
+CRITICAL FOR ALL MODES - NO OUTLINES RULE (MANDATORY):
 - DO NOT use black outlines, dark outlines, or any stroke lines around shapes
 - DO NOT use borders, edges, or contours in black or dark colors
-- Shapes must be defined ONLY by soft pastel color fills and smooth gradients
-- If separation between shapes is needed, use color contrast (different colored pastel fills) or very subtle tone-on-tone edges that match the fill color
+- Shapes must be defined ONLY by color fills (and smooth gradients for MODE C)
+- If separation between shapes is needed, use color contrast (different colored fills) or very subtle tone-on-tone edges that match the fill color
 - Examples of what NOT to do: black borders around shapes, dark stroke lines, outlined illustrations, comic-book style borders
-- Examples of what TO do: solid pastel color blocks, smooth gradient fills, color-defined shapes with no edges, soft color transitions
+- Examples of what TO do: solid color blocks, smooth gradient fills (MODE C), color-defined shapes with no edges, soft color transitions
 
 COLOR REQUIREMENT: Use diverse, topic-appropriate color palettes. Do NOT default to blue for all images. Vary colors between articles - use greens, purples, oranges, reds, golds, teals, or other colors that match the topic's mood and industry. Only use blue when it's specifically appropriate for the domain (e.g., ocean/water themes, specific brand colors). Finance can use green/gold, Gaming can use vibrant reds/oranges, Healthcare can use soft greens, AI research can use purple/orange/green combinations, etc.
 
 COLOR DISCIPLINE RULES (MANDATORY):
-- Use a restrained color palette (maximum 2–4 dominant colors for MODE C, 2–3 for MODE A and B)
+- Use a restrained color palette (maximum 5 dominant colors for all modes)
 - Avoid neon gradients
-- Avoid overly saturated rainbow compositions
-- MODE A and B: Prefer muted, professional tones. Use soft contrast rather than extreme vibrancy.
-- MODE C: Use soft pastel colors (light blues, light purples, soft pinks, light greens, soft teals) - clean, polished, inviting with smooth gradients
-- Background should be neutral or lightly tinted (white/light neutral for MODE C to make colors pop)
+- Avoid overly saturated rainbow compositions (keep it restrained, not super colorful)
+- All modes: Use pastel colors OR vibrant colors - both are acceptable. Avoid muted/dull tones.
+- MODE A and B: Pastel or vibrant colors are fine - use colors that match the topic's mood
+- MODE C: Use soft pastel colors (light blues, light purples, soft pinks, light greens, soft teals) with smooth gradients - clean, polished, inviting
+- Background should be neutral or lightly tinted (white/light neutral preferred)
 - Do not use purple–orange neon tech gradients unless specifically appropriate
 
 COLOR RULES (Specific to MODE C):
@@ -205,7 +207,7 @@ Generate a visual prompt that:
 2. Then provides the image prompt following the selected mode's style guidelines
 3. Detects the domain from the title/description
 4. Applies domain-specific visual concepts using the selected mode's style
-5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood. Applies COLOR DISCIPLINE RULES: restrained palette (max 2-4 dominant colors for MODE C, 2-3 for others), avoid neon gradients, avoid overly saturated rainbow compositions. For MODE C: use soft pastel colors (light blues, light purples, soft pinks, light greens, soft teals) with smooth gradients - clean, polished, inviting. For MODE A and B: prefer muted professional tones, soft contrast. Background: neutral/lightly tinted (white/light neutral for MODE C), no purple-orange neon tech gradients unless appropriate. FOR MODE C: ABSOLUTELY NO black outlines, dark outlines, or stroke lines - shapes defined by soft pastel color fills and smooth gradients only.
+5. Uses diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic's mood. Applies COLOR DISCIPLINE RULES: restrained palette (max 5 dominant colors for all modes), avoid neon gradients, avoid overly saturated rainbow compositions (keep it restrained, not super colorful). All modes: Use pastel colors OR vibrant colors - both are acceptable. Avoid muted/dull tones. For MODE C: use soft pastel colors (light blues, light purples, soft pinks, light greens, soft teals) with smooth gradients - clean, polished, inviting. For MODE A and B: pastel or vibrant colors are fine - use colors that match the topic's mood. Background: neutral/lightly tinted (white/light neutral preferred), no purple-orange neon tech gradients unless appropriate. FOR ALL MODES: ABSOLUTELY NO black outlines, dark outlines, or stroke lines - shapes defined by color fills only (and smooth gradients for MODE C).
 6. Shows NO humans, people, or faces`,
         },
       ],
