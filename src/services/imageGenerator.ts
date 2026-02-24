@@ -112,7 +112,7 @@ CRITICAL RULES:
    - AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts, devices with AI interfaces (flat 2D vector, NOT realistic screens or dashboards)
    - Media/Publishing → editorial concepts, publishing elements, content creation tools, devices with content interfaces (flat 2D vector, NO realistic newsroom scenes)
    - Hardware/Products → product illustrations, technical devices, precise details, devices as products (flat 2D vector, simplified geometric shapes)
-   - Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, clean outlines)
+    - Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, no outlines, shapes defined by color fills only)
    - Default → technology concepts, innovation symbols, digital transformation metaphors, devices when relevant (flat 2D vector, simplified geometric shapes)
 9. **NO HUMANS, BUT DEVICES ALLOWED** - Do not show people, faces, or human figures. Devices (smartphones, tablets, laptops, computers, monitors) are allowed but must be flat 2D vector illustrations with simplified geometric shapes, not photorealistic. Focus on objects, environments, technology, data visualizations, interfaces, workflows, or abstract concepts.
 10. **Avoid repetitive templates** - Use varied composition, perspective, and lighting depending on topic. No generic boardroom scenes, office environments, realistic dashboards, or network diagrams. Each article should have a UNIQUE visual concept based on its specific topic and action. Do NOT default to "dashboard on screen" or "network diagram" for similar topics.
@@ -155,7 +155,7 @@ STEP 2: APPLY DOMAIN-SPECIFIC VISUAL CONCEPTS (all flat 2D vector graphic style)
 - Enterprise/Corporate → corporate concepts, business elements, office objects, devices with business interfaces (flat 2D vector, simplified geometric shapes, NO business meeting scenes)
 - AI research/Technical → abstract tech elements, conceptual AI visuals, analytical concepts, devices with AI interfaces (flat 2D vector, simplified geometric shapes, NOT realistic screens or dashboards)
 - Hardware/Products → product illustrations, technical devices, precise details, devices as products (flat 2D vector, simplified geometric shapes)
-- Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, clean outlines)
+- Automation/Workflow → workflow diagrams, process flows, automation concepts, devices showing automation interfaces (flat 2D vector, no outlines, shapes defined by color fills only)
 - Default → technology concepts, innovation symbols, digital transformation metaphors, devices when relevant (flat 2D vector, simplified geometric shapes)
 
 STRICT VISUAL STYLE (applies based on selected MODE):
@@ -267,7 +267,7 @@ Generate a visual prompt that:
       imageDescription = "modern technology, innovation, digital transformation";
     }
     
-    return `Create a blog hero image representing: ${imageDescription}. STRICT VISUAL STYLE: Flat 2D vector graphic composition. Use simplified geometric shapes only. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only. Use diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic. No humans, no people, no faces. No text, no words, just visual elements.`;
+    return `Create a blog hero image representing: ${imageDescription}. STRICT VISUAL STYLE: Flat 2D vector graphic composition. Use simplified geometric shapes only. ABSOLUTELY NO dark outlines, black outlines, or heavy stroke lines. Shapes defined by color fills only - use color fills to define shapes, not outlines. No 3D rendering. No isometric perspective. No depth-of-field. No realistic lighting. No volumetric shading. No photorealistic objects. No cinematic glow effects. No textured surfaces. Design should resemble a modern tech editorial magazine cover graphic. Clean, bold, minimal, symbolic. Orthographic front-facing view only. If edges are needed, use tone-on-tone or very subtle colored edges that match the fill color - never black or dark. Use diverse, topic-appropriate colors - do NOT default to blue. Vary colors: greens, purples, oranges, reds, golds, teals, or other colors matching the topic. No humans, no people, no faces. No text, no words, just visual elements.`;
   }
 }
 
