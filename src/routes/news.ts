@@ -12,7 +12,50 @@ interface ContentBlock {
 
 export const newsRouter = Router();
 
-// GET /api/news — List all published articles
+// ---------------------------------------------------------------------------
+// In-memory listing cache — articles change hourly via cron, so 60s is safe.
+// ---------------------------------------------------------------------------
+
+const LISTING_CACHE_TTL_MS = 60_000;
+
+interface ListingCacheEntry {
+  data: string; // pre-serialized JSON
+  ts: number;
+  key: string;
+}
+
+let _listingCache: ListingCacheEntry | null = null;
+
+function getListingCacheKey(where: Record<string, unknown>, take: number, skip: number) {
+  return JSON.stringify({ where, take, skip });
+}
+
+/** Invalidate listing cache (called after writes). */
+export function invalidateListingCache() {
+  _listingCache = null;
+}
+
+// Prisma select for listing queries — everything EXCEPT the heavy content column.
+const LISTING_SELECT = {
+  id: true,
+  slug: true,
+  title: true,
+  excerpt: true,
+  topics: true,
+  author: true,
+  imageUrl: true,
+  date: true,
+  createdAt: true,
+  isFeatured: true,
+  metaTitle: true,
+  metaDescription: true,
+  status: true,
+} as const;
+
+// ---------------------------------------------------------------------------
+// GET /api/news — List published articles
+// ---------------------------------------------------------------------------
+
 newsRouter.get("/", async (req, res) => {
   try {
     const topics = req.query.topics as string | undefined;
@@ -20,66 +63,109 @@ newsRouter.get("/", async (req, res) => {
     const featured = req.query.featured as string | undefined;
     const limit = req.query.limit as string | undefined;
     const offset = req.query.offset as string | undefined;
+    const includeContent = req.query.content === "true";
 
-    const where: any = {};
-
-    // Default to published articles for public requests
+    const where: Record<string, unknown> = {};
     where.status = status || "published";
 
     if (topics) {
       where.topics = { equals: topics, mode: "insensitive" };
     }
-
     if (featured === "true") {
       where.isFeatured = true;
     }
 
+    const take = limit ? parseInt(limit) : 50;
+    const skip = offset ? parseInt(offset) : 0;
+
+    // Check in-memory cache (only for listing-mode requests without content)
+    if (!includeContent) {
+      const cacheKey = getListingCacheKey(where, take, skip);
+      if (_listingCache && _listingCache.key === cacheKey && Date.now() - _listingCache.ts < LISTING_CACHE_TTL_MS) {
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+        res.setHeader("X-Cache", "HIT");
+        res.send(_listingCache.data);
+        return;
+      }
+    }
+
     const articles = await prisma.article.findMany({
       where,
-      orderBy: { createdAt: "desc" }, // Sort by creation date (newest first)
-      take: limit ? parseInt(limit) : 50,
-      skip: offset ? parseInt(offset) : 0,
+      orderBy: { createdAt: "desc" },
+      take,
+      skip,
+      ...(includeContent ? {} : { select: LISTING_SELECT }),
     });
 
-    // Map to frontend-friendly format
-    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
-    const mapped = articles.map((article) => ({
-      id: article.id,
-      slug: article.slug,
-      title: article.title,
-      excerpt: article.excerpt,
-      topics: article.topics,
-      author: article.author,
-      imageUrl: `${baseUrl}/api/news/image/${article.slug}`,
-      date: article.date.toLocaleDateString("en-AU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-      timestamp: getRelativeTime(article.createdAt),
-      isFeatured: article.isFeatured,
-      metaTitle: article.metaTitle,
-      metaDescription: article.metaDescription,
-      status: article.status,
-      content: (article.content as any) || [], // Read from JSON column
-    }));
+    const baseUrl =
+      process.env.API_BASE_URL ||
+      `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
 
-    res.json(mapped);
+    const mapped = articles.map((article: any) => {
+      const base: Record<string, unknown> = {
+        id: article.id,
+        slug: article.slug,
+        title: article.title,
+        excerpt: article.excerpt,
+        topics: article.topics,
+        author: article.author,
+        imageUrl: `${baseUrl}/api/news/image/${article.slug}`,
+        date: article.date.toLocaleDateString("en-AU", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }),
+        timestamp: getRelativeTime(article.createdAt),
+        isFeatured: article.isFeatured,
+        metaTitle: article.metaTitle,
+        metaDescription: article.metaDescription,
+        status: article.status,
+      };
+      if (includeContent) {
+        base.content = (article.content as any) || [];
+      }
+      return base;
+    });
+
+    const json = JSON.stringify(mapped);
+
+    // Populate cache for listing requests
+    if (!includeContent) {
+      _listingCache = {
+        data: json,
+        ts: Date.now(),
+        key: getListingCacheKey(where, take, skip),
+      };
+    }
+
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      includeContent
+        ? "public, max-age=30, stale-while-revalidate=60"
+        : "public, max-age=60, stale-while-revalidate=120"
+    );
+    res.setHeader("X-Cache", "MISS");
+    res.send(json);
   } catch (error: any) {
     console.error("Error fetching articles:", error);
     console.error("Error stack:", error?.stack);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to fetch articles",
       message: error?.message || "Unknown error",
-      details: process.env.NODE_ENV === "development" ? error?.stack : undefined
+      details: process.env.NODE_ENV === "development" ? error?.stack : undefined,
     });
   }
 });
 
-// GET /api/news/search?q=term — Search articles by title, excerpt, or content
+// ---------------------------------------------------------------------------
+// GET /api/news/search?q=term — Search articles
+// ---------------------------------------------------------------------------
+
 newsRouter.get("/search", async (req, res) => {
   try {
-    const q = (req.query.q as string || "").trim();
+    const q = ((req.query.q as string) || "").trim();
 
     if (!q) {
       res.json([]);
@@ -97,27 +183,41 @@ newsRouter.get("/search", async (req, res) => {
       },
       orderBy: { date: "desc" },
       take: 20,
+      select: LISTING_SELECT,
     });
 
-    // Also filter by content text (JSON column - search client-side)
-    const contentMatched = articles.length === 0
-      ? await prisma.article.findMany({
-          where: { status: "published" },
-          orderBy: { date: "desc" },
-          take: 50,
-        }).then((all) =>
-          all.filter((a) => {
-            const blocks = (a.content as unknown as ContentBlock[]) || [];
-            return blocks.some((b) => b.text?.toLowerCase().includes(q.toLowerCase()));
-          }).slice(0, 20)
-        )
-      : [];
+    // Fallback: content-body text search when metadata search returns nothing
+    const contentMatched =
+      articles.length === 0
+        ? await prisma.article
+            .findMany({
+              where: { status: "published" },
+              orderBy: { date: "desc" },
+              take: 50,
+            })
+            .then((all) =>
+              all
+                .filter((a) => {
+                  const blocks =
+                    (a.content as unknown as ContentBlock[]) || [];
+                  return blocks.some((b) =>
+                    b.text?.toLowerCase().includes(q.toLowerCase())
+                  );
+                })
+                .slice(0, 20)
+            )
+        : [];
 
     const allResults = [...articles, ...contentMatched];
-    const unique = allResults.filter((a, i, arr) => arr.findIndex((b) => b.id === a.id) === i);
+    const unique = allResults.filter(
+      (a, i, arr) => arr.findIndex((b) => b.id === a.id) === i
+    );
 
-    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
-    const mapped = unique.map((article) => ({
+    const baseUrl =
+      process.env.API_BASE_URL ||
+      `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
+
+    const mapped = unique.map((article: any) => ({
       id: article.id,
       slug: article.slug,
       title: article.title,
@@ -135,6 +235,7 @@ newsRouter.get("/search", async (req, res) => {
       content: (article.content as any) || [],
     }));
 
+    res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
     res.json(mapped);
   } catch (error: any) {
     console.error("Error searching articles:", error);
@@ -142,7 +243,10 @@ newsRouter.get("/search", async (req, res) => {
   }
 });
 
-// GET /api/news/:slug — Get single article by slug
+// ---------------------------------------------------------------------------
+// GET /api/news/:slug — Single article (full content)
+// ---------------------------------------------------------------------------
+
 newsRouter.get("/:slug", async (req, res) => {
   try {
     const slug = req.params.slug as string;
@@ -156,7 +260,11 @@ newsRouter.get("/:slug", async (req, res) => {
       return;
     }
 
-    const baseUrl = process.env.API_BASE_URL || `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
+    const baseUrl =
+      process.env.API_BASE_URL ||
+      `https://${req.get("host") || "appifyglobalbackend-production.up.railway.app"}`;
+
+    res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=300");
     res.json({
       id: article.id,
       slug: article.slug,
@@ -175,7 +283,7 @@ newsRouter.get("/:slug", async (req, res) => {
       metaTitle: article.metaTitle,
       metaDescription: article.metaDescription,
       status: article.status,
-      content: (article.content as any) || [], // Read from JSON column
+      content: (article.content as any) || [],
     });
   } catch (error) {
     console.error("Error fetching article:", error);
@@ -183,7 +291,10 @@ newsRouter.get("/:slug", async (req, res) => {
   }
 });
 
-// POST /api/news — Create a new article (protected by API key)
+// ---------------------------------------------------------------------------
+// POST /api/news — Create article (protected by API key)
+// ---------------------------------------------------------------------------
+
 newsRouter.post("/", async (req, res) => {
   try {
     const {
@@ -202,7 +313,6 @@ newsRouter.post("/", async (req, res) => {
       content,
     } = req.body;
 
-    // Validate required fields
     if (!slug || !title || !excerpt || !topics || !imageUrl) {
       res.status(400).json({
         error: "Missing required fields: slug, title, excerpt, topics, imageUrl",
@@ -210,7 +320,6 @@ newsRouter.post("/", async (req, res) => {
       return;
     }
 
-    // Check for duplicate source URL
     if (sourceUrl) {
       const existing = await prisma.article.findUnique({
         where: { sourceUrl },
@@ -238,10 +347,11 @@ newsRouter.post("/", async (req, res) => {
         metaDescription,
         sourceUrl,
         status: status || "draft",
-        content: content ? (content as any) : null, // Store as JSON
+        content: content ? (content as any) : null,
       },
     });
 
+    invalidateListingCache();
     res.status(201).json(article);
   } catch (error) {
     console.error("Error creating article:", error);
@@ -249,7 +359,10 @@ newsRouter.post("/", async (req, res) => {
   }
 });
 
-// PUT /api/news/:slug/publish — Publish a draft article
+// ---------------------------------------------------------------------------
+// PUT /api/news/:slug/publish — Publish a draft
+// ---------------------------------------------------------------------------
+
 newsRouter.put("/:slug/publish", async (req, res) => {
   try {
     const slug = req.params.slug as string;
@@ -259,6 +372,7 @@ newsRouter.put("/:slug/publish", async (req, res) => {
       data: { status: "published" },
     });
 
+    invalidateListingCache();
     res.json({ message: "Article published", slug: article.slug });
   } catch (error) {
     console.error("Error publishing article:", error);
@@ -266,7 +380,10 @@ newsRouter.put("/:slug/publish", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
 // DELETE /api/news/:slug — Delete an article
+// ---------------------------------------------------------------------------
+
 newsRouter.delete("/:slug", async (req, res) => {
   try {
     const slug = req.params.slug as string;
@@ -275,6 +392,7 @@ newsRouter.delete("/:slug", async (req, res) => {
       where: { slug },
     });
 
+    invalidateListingCache();
     res.json({ message: "Article deleted" });
   } catch (error) {
     console.error("Error deleting article:", error);
@@ -282,12 +400,14 @@ newsRouter.delete("/:slug", async (req, res) => {
   }
 });
 
-// GET /api/news/image/:slug — Proxy image from Railbucket (like booked ai)
+// ---------------------------------------------------------------------------
+// GET /api/news/image/:slug — Proxy image from Railbucket
+// ---------------------------------------------------------------------------
+
 newsRouter.get("/image/:slug", async (req, res) => {
   try {
     const slug = req.params.slug;
 
-    // Get article to find image URL
     const article = await prisma.article.findUnique({
       where: { slug },
       select: { imageUrl: true },
@@ -298,7 +418,6 @@ newsRouter.get("/image/:slug", async (req, res) => {
       return;
     }
 
-    // Fetch image from Railbucket (signed URL)
     const imageUrl = article.imageUrl;
     const url = new URL(imageUrl);
     const client = url.protocol === "https:" ? https : http;
@@ -306,16 +425,19 @@ newsRouter.get("/image/:slug", async (req, res) => {
     client
       .get(imageUrl, (imageRes) => {
         if (imageRes.statusCode !== 200) {
-          res.status(imageRes.statusCode || 500).json({ error: "Failed to fetch image" });
+          res
+            .status(imageRes.statusCode || 500)
+            .json({ error: "Failed to fetch image" });
           return;
         }
 
-        // Set proper headers for image
-        res.setHeader("Content-Type", imageRes.headers["content-type"] || "image/png");
-        res.setHeader("Cache-Control", "public, max-age=3600"); // Cache for 1 hour (reduced from 1 year for easier updates)
+        res.setHeader(
+          "Content-Type",
+          imageRes.headers["content-type"] || "image/png"
+        );
+        res.setHeader("Cache-Control", "public, max-age=86400, immutable");
         res.setHeader("Access-Control-Allow-Origin", "*");
 
-        // Stream image to response
         imageRes.pipe(res);
       })
       .on("error", (error) => {
@@ -328,7 +450,10 @@ newsRouter.get("/image/:slug", async (req, res) => {
   }
 });
 
-// Helper: relative time string
+// ---------------------------------------------------------------------------
+// Helper
+// ---------------------------------------------------------------------------
+
 function getRelativeTime(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -336,8 +461,11 @@ function getRelativeTime(date: Date): string {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffHours < 1) return "JUST NOW";
-  if (diffHours < 24) return `${diffHours} HOUR${diffHours > 1 ? "S" : ""} AGO`;
-  if (diffDays < 7) return `${diffDays} DAY${diffDays > 1 ? "S" : ""} AGO`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} WEEK${Math.floor(diffDays / 7) > 1 ? "S" : ""} AGO`;
+  if (diffHours < 24)
+    return `${diffHours} HOUR${diffHours > 1 ? "S" : ""} AGO`;
+  if (diffDays < 7)
+    return `${diffDays} DAY${diffDays > 1 ? "S" : ""} AGO`;
+  if (diffDays < 30)
+    return `${Math.floor(diffDays / 7)} WEEK${Math.floor(diffDays / 7) > 1 ? "S" : ""} AGO`;
   return `${Math.floor(diffDays / 30)} MONTH${Math.floor(diffDays / 30) > 1 ? "S" : ""} AGO`;
 }

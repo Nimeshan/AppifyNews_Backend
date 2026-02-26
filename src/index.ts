@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import cors from "cors";
 import cron from "node-cron";
 import { newsRouter } from "./routes/news";
@@ -10,6 +11,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Middleware
+app.disable("x-powered-by");
+app.use(compression());
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL || "http://localhost:3000",

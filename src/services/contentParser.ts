@@ -162,15 +162,39 @@ export function parseContentBlocks(htmlContent: string): ContentBlock[] {
   return blocks;
 }
 
+const STOP_WORDS = new Set([
+  "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+  "of", "with", "by", "from", "as", "is", "was", "are", "were",
+  "be", "have", "has", "had", "do", "does", "did", "will", "would",
+  "could", "should", "may", "might", "its", "that", "this", "not",
+  "no", "so", "yet", "than", "too", "very", "just", "also", "now",
+  "here", "there", "says", "said", "heres", "after", "into", "amid",
+  "over", "about", "up", "out", "being", "under",
+]);
+
+const MAX_SLUG_WORDS = 7;
+
 /**
- * Generate a URL-safe slug from a title.
+ * Generate a concise, SEO-friendly slug from a title.
+ *
+ * Strips currency symbols and percent signs before slugification,
+ * removes common stop words, and caps at MAX_SLUG_WORDS keywords.
  */
 export function generateSlug(title: string): string {
-  return slugify(title, {
-    lower: true,
-    strict: true,
-    trim: true,
-  });
+  const cleaned = title
+    .replace(/\$\s*/g, "")
+    .replace(/(\d+)%/g, "$1pct")
+    .replace(/%/g, "")
+    .replace(/['']/g, "")
+    .replace(/[—–]/g, "-");
+
+  const raw = slugify(cleaned, { lower: true, strict: true, trim: true });
+
+  const words = raw.split("-").filter((w) => w.length > 0);
+  const meaningful = words.filter((w) => !STOP_WORDS.has(w));
+  const result = meaningful.length > 0 ? meaningful : words;
+
+  return result.slice(0, MAX_SLUG_WORDS).join("-");
 }
 
 /**
