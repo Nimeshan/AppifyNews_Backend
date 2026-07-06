@@ -244,6 +244,81 @@ newsRouter.get("/search", async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/news/image/:slug — Proxy image from Railbucket
+// (Must be registered before /:slug)
+// ---------------------------------------------------------------------------
+
+function sendImageProxyError(
+  res: import("express").Response,
+  status: number,
+  message: string
+) {
+  if (res.headersSent) {
+    res.destroy();
+    return;
+  }
+  res.status(status).json({ error: message });
+}
+
+newsRouter.get("/image/:slug", async (req, res) => {
+  try {
+    const slug = req.params.slug;
+
+    const article = await prisma.article.findUnique({
+      where: { slug },
+      select: { imageUrl: true },
+    });
+
+    if (!article || !article.imageUrl) {
+      sendImageProxyError(res, 404, "Image not found");
+      return;
+    }
+
+    const imageUrl = article.imageUrl;
+    const url = new URL(imageUrl);
+    const client = url.protocol === "https:" ? https : http;
+
+    const proxyRequest = client.get(imageUrl, (imageRes) => {
+      if (imageRes.statusCode !== 200) {
+        imageRes.resume();
+        sendImageProxyError(
+          res,
+          imageRes.statusCode || 500,
+          "Failed to fetch image"
+        );
+        return;
+      }
+
+      res.setHeader(
+        "Content-Type",
+        imageRes.headers["content-type"] || "image/png"
+      );
+      res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+
+      imageRes.on("error", (error) => {
+        console.error("Error streaming image:", error);
+        sendImageProxyError(res, 500, "Failed to proxy image");
+      });
+
+      res.on("close", () => {
+        imageRes.destroy();
+      });
+
+      imageRes.pipe(res);
+    });
+
+    proxyRequest.on("error", (error) => {
+      console.error("Error proxying image:", error);
+      sendImageProxyError(res, 500, "Failed to proxy image");
+    });
+  } catch (error) {
+    console.error("Error in image proxy:", error);
+    sendImageProxyError(res, 500, "Failed to proxy image");
+  }
+});
+
+// ---------------------------------------------------------------------------
 // GET /api/news/:slug — Single article (full content)
 // ---------------------------------------------------------------------------
 
@@ -397,56 +472,6 @@ newsRouter.delete("/:slug", async (req, res) => {
   } catch (error) {
     console.error("Error deleting article:", error);
     res.status(500).json({ error: "Failed to delete article" });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// GET /api/news/image/:slug — Proxy image from Railbucket
-// ---------------------------------------------------------------------------
-
-newsRouter.get("/image/:slug", async (req, res) => {
-  try {
-    const slug = req.params.slug;
-
-    const article = await prisma.article.findUnique({
-      where: { slug },
-      select: { imageUrl: true },
-    });
-
-    if (!article || !article.imageUrl) {
-      res.status(404).json({ error: "Image not found" });
-      return;
-    }
-
-    const imageUrl = article.imageUrl;
-    const url = new URL(imageUrl);
-    const client = url.protocol === "https:" ? https : http;
-
-    client
-      .get(imageUrl, (imageRes) => {
-        if (imageRes.statusCode !== 200) {
-          res
-            .status(imageRes.statusCode || 500)
-            .json({ error: "Failed to fetch image" });
-          return;
-        }
-
-        res.setHeader(
-          "Content-Type",
-          imageRes.headers["content-type"] || "image/png"
-        );
-        res.setHeader("Cache-Control", "public, max-age=86400, immutable");
-        res.setHeader("Access-Control-Allow-Origin", "*");
-
-        imageRes.pipe(res);
-      })
-      .on("error", (error) => {
-        console.error("Error proxying image:", error);
-        res.status(500).json({ error: "Failed to proxy image" });
-      });
-  } catch (error) {
-    console.error("Error in image proxy:", error);
-    res.status(500).json({ error: "Failed to proxy image" });
   }
 });
 
